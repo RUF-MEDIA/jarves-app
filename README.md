@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+Personalvermittlungs-Software
+Willkommen zu meiner Personalvermittlungs-Software! Diese Anwendung wurde von Matthias Ruf entwickelt. Weitere Informationen über mich finden Sie auf meiner Website: www.ruf-media.com.
 
-## Getting Started
+Einführung
+Diese Software wurde entwickelt, um Personalvermittlungen effizienter und einfacher zu gestalten. Sie bietet eine benutzerfreundliche Oberfläche und leistungsstarke Funktionen, die den Prozess der Personalvermittlung optimieren.
 
-First, run the development server:
+Installation und Ausführung
+Voraussetzungen
+Node.js (Version 12 oder höher)
+npm (Node Package Manager)
+Installation
+Klonen Sie das Repository auf Ihren lokalen Rechner:
 
-```bash
+bash
+Code kopieren
+git clone https://github.com/RUF-MEDIA/jarves-app.git
+Navigieren Sie in das Verzeichnis des Projekts:
+
+bash
+Code kopieren
+cd personalvermittlungs-software
+Installieren Sie die benötigten Abhängigkeiten:
+
+bash
+Code kopieren
+npm install
+Entwicklungsversion starten
+Um die Entwicklungsumgebung zu starten, verwenden Sie den folgenden Befehl:
+
+bash
+Code kopieren
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Dieser Befehl startet einen lokalen Entwicklungsserver. Die Anwendung ist dann unter http://localhost:3000 erreichbar.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Mitwirkende
+Falls Sie zur Entwicklung dieser Software beitragen möchten, können Sie gerne Pull-Requests erstellen oder Issues im Repository melden.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Lizenz
+Diese Software ist unter der MIT-Lizenz veröffentlicht. Weitere Details finden Sie in der LICENSE-Datei.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Matthias Ruf
+www.ruf-media.com
