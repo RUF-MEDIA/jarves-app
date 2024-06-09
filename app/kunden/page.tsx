@@ -1,10 +1,9 @@
-import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-
+import { Table } from '@/components/ui/table';
 export default function Home() {
   return (
     <div>
-      <Button>das ist ein Test</Button>
+      <Table />
     </div>
   );
 }
