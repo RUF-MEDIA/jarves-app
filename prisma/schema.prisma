@@ -23,3 +23,14 @@ model User {
 
 
 }
+
+model unternehmen {
+id String @id @unique
+name String
+status String
+kategorie String
+zustaendig String
+email String
+telefon String
+
+}

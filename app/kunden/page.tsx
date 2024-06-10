@@ -3,7 +3,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 
 export default function Home() {
   return (
-    <div>
+    <div className="w-full p-5">
       <Table>
         <TableCaption>A list of your recent invoices.</TableCaption>
         <TableHeader>

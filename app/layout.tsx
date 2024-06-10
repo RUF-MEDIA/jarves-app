@@ -17,9 +17,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="de">
-      <body className={inter.className}>
+      <body className={`${inter.className} bg-slate-50`}>
         <Navbar />
-        {children}
+        <div className="min-w-full flex items-center w-full mx-auto px-4 sm:px-6 lg:px-8 ">
+          <div className="min-w-full flex items-center justify-between container mx-auto my-5 px-5 lg:px-10 ">{children}</div>
+        </div>
       </body>
     </html>
   );
