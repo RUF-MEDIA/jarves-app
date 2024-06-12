@@ -1,28 +1,14 @@
-import Image from 'next/image';
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { PrismaClient } from '@prisma/client';
+import { KundenTable } from '@/components/kundentable';
 
-export default function Home() {
+const db = new PrismaClient();
+
+export default async function KundenPage() {
+  const allUsers = await db.unternehmen.findMany();
+
   return (
-    <div className="w-full p-5">
-      <Table>
-        <TableCaption>A list of your recent invoices.</TableCaption>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">Invoice</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Method</TableHead>
-            <TableHead className="text-right">Amount</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <TableRow>
-            <TableCell className="font-medium">INV001</TableCell>
-            <TableCell>Paid</TableCell>
-            <TableCell>Credit Card</TableCell>
-            <TableCell className="text-right">$250.00</TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
+    <div className="bg-white min-w-full px-5 ms-5 pt-10 pb-10">
+      <KundenTable allUsers={allUsers} />
     </div>
   );
 }

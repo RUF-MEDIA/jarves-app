@@ -9,9 +9,5 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <div className="bg-white min-w-full px-5 ms-5" w-full>
-      {children}
-    </div>
-  );
+  return <div className="w-full">{children}</div>;
 }
