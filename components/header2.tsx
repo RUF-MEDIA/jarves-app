@@ -1,3 +1,4 @@
+// components/header2.tsx
 import React from 'react';
 import Link from 'next/link';
 

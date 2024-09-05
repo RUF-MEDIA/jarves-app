@@ -1,14 +1,19 @@
-import { PrismaClient } from '@prisma/client';
+// app/kunden/page.tsx
+
+import prisma from '@/lib/prisma';
 import { KundenTable } from '@/components/kundentable';
 
-const db = new PrismaClient();
-
 export default async function KundenPage() {
-  const allUsers = await db.unternehmen.findMany();
+  try {
+    const allUsers = await prisma.unternehmen.findMany();
 
-  return (
-    <div className="bg-white min-w-full px-5 ms-5 pt-10 pb-10">
-      <KundenTable allUsers={allUsers} />
-    </div>
-  );
+    return (
+      <div className="bg-white min-w-full px-5 ms-5 pt-10 pb-10">
+        <KundenTable allUsers={allUsers} />
+      </div>
+    );
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    return <div>Ein Fehler ist aufgetreten beim Laden der Daten.</div>;
+  }
 }

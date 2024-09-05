@@ -1,10 +1,16 @@
-'use client';
+// components/unternehmen/switchdocs.tsx
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Stammdaten from '@/components/unternehmen/stammdaten';
+import Downloads from '@/components/unternehmen/downloads';
 
-const Switchdocs = ({ unternehmen }: { unternehmen: any }) => {
+interface SwitchdocsProps {
+  unternehmen: any;
+  documents: any[];
+}
+
+const Switchdocs: React.FC<SwitchdocsProps> = ({ unternehmen, documents }) => {
   return (
     <Tabs defaultValue="Stammdaten" className="w-full">
       <TabsList>
@@ -14,7 +20,9 @@ const Switchdocs = ({ unternehmen }: { unternehmen: any }) => {
       <TabsContent value="Stammdaten">
         <Stammdaten unternehmen={unternehmen} />
       </TabsContent>
-      <TabsContent value="Downloads">Downloads content here.</TabsContent>
+      <TabsContent value="Downloads">
+        <Downloads unternehmen={unternehmen} documents={documents} />
+      </TabsContent>
     </Tabs>
   );
 };
