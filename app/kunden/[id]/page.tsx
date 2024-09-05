@@ -48,3 +48,4 @@ const Kunde = async ({ params }: { params: { id: string } }) => {
 };
 
 export default Kunde;
+test;
