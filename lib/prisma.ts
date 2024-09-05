@@ -1,11 +1,4 @@
-// lib/prisma.ts
 import { PrismaClient, Prisma } from '@prisma/client';
-
-let prisma: PrismaClient;
-
-declare global {
-  var prisma: PrismaClient | undefined;
-}
 
 const prismaOptions: Prisma.PrismaClientOptions = {
   log: [
@@ -14,25 +7,44 @@ const prismaOptions: Prisma.PrismaClientOptions = {
     { emit: 'stdout', level: 'warn' },
     { emit: 'stdout', level: 'error' },
   ],
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
 };
 
-if (process.env.NODE_ENV === 'production') {
-  prisma = new PrismaClient(prismaOptions);
-} else {
-  if (!global.prisma) {
-    global.prisma = new PrismaClient(prismaOptions);
+class PrismaManager {
+  private static instance: PrismaClient;
+
+  static getInstance(): PrismaClient {
+    if (!PrismaManager.instance) {
+      PrismaManager.instance = new PrismaClient(prismaOptions);
+    }
+    return PrismaManager.instance;
   }
-  prisma = global.prisma;
+
+  static async disconnect() {
+    if (PrismaManager.instance) {
+      await PrismaManager.instance.$disconnect();
+    }
+  }
 }
 
+const prisma = PrismaManager.getInstance();
+
+// Verbindungstest (Sie können diesen Block entfernen, nachdem Sie die Verbindung getestet haben)
+prisma
+  .$connect()
+  .then(() => console.log('Database connection successful'))
+  .catch((e) => console.error('Database connection failed', e));
+
+if (process.env.NODE_ENV !== 'production') {
+  (global as any).prisma = prisma;
+}
+
+process.on('beforeExit', async () => {
+  await PrismaManager.disconnect();
+});
+
 export default prisma;
-
-process.on('SIGINT', async () => {
-  await prisma.$disconnect();
-  process.exit(0);
-});
-
-process.on('SIGTERM', async () => {
-  await prisma.$disconnect();
-  process.exit(0);
-});
