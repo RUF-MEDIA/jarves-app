@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Navbar } from '@/components/navbar';
+import Script from 'next/script';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -17,6 +18,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="de">
+      <head>
+        <Script src="https://www.bugherd.com/sidebarv2.js?apikey=xzuc6tx4z6tbqc3qhpfwwa" strategy="afterInteractive" />
+      </head>
       <body className={`${inter.className} bg-slate-50`}>
         <Navbar />
         <div className="min-w-full flex items-center w-full mx-auto px-4 sm:px-6 lg:px-8 ">
