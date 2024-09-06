@@ -30,7 +30,6 @@ const Kunde = async ({ params }: { params: { id: string } }) => {
         </div>
         <div className="flex gap-4">
           <div className="flex-grow bg-white px-5 ms-5 pt-5 pb-5" style={{ flexBasis: '30%' }}>
-            <Stammdaten unternehmen={user} />
             <Switchdocs unternehmen={user} documents={[]} />
           </div>
           <div className="bg-white px-5 ms-5 pt-5 pb-5" style={{ flexBasis: '40%' }}></div>
