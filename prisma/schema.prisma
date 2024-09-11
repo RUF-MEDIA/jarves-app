@@ -48,6 +48,8 @@ model Unternehmen {
   verknuepfteUnternehmen     Unternehmen[]             @relation("UnternehmensVerknuepfung")
   verknuepftMit              Unternehmen[]             @relation("UnternehmensVerknuepfung")
   ansprechpartner             Ansprechpartner[]         @relation("AnsprechpartnerToUnternehmen")
+  hauptansprechpartnerId      String?                   @unique  // Hinzugefügt: @unique, um die 1:1 Beziehung zu unterstützen
+  hauptansprechpartner        Ansprechpartner?          @relation("HauptansprechpartnerRelation", fields: [hauptansprechpartnerId], references: [id])
 
   @@schema("public")
 }
@@ -207,6 +209,8 @@ model Ansprechpartner {
   todos                Todo[]
   auftraege            Auftrag[]                 @relation("AnsprechpartnerToAuftrag")
   unternehmen          Unternehmen[]             @relation("AnsprechpartnerToUnternehmen")
+  hauptansprechpartnerUnternehmen Unternehmen? @relation("HauptansprechpartnerRelation")
+
 
   @@schema("public")
 }

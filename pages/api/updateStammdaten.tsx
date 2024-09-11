@@ -29,6 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     interneNotizen,
     betreuerId,
     unternehmensverknuepfung, // Verknüpfung vom Frontend
+    hauptansprechpartnerId, // Hinzugefügt: HauptansprechpartnerId vom Frontend
   } = req.body;
 
   try {
@@ -64,6 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       interneNotizen,
       betreuerId,
       unternehmensverknuepfung: validVerknuepfung, // Verknüpfung als Prisma Enum oder null, wenn ungültig
+      hauptansprechpartnerId, // Speichert den Hauptansprechpartner
     };
 
     if (kategorieValue !== undefined) {

@@ -7,7 +7,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { FaStar, FaEdit, FaSave } from 'react-icons/fa';
 
 const statuses = ['inaktiv', 'Zielkunde', 'pending', 'aktiv', 'Rahmenvertragspartner', 'nicht_kontaktieren'];
-
 const standorte = ['Zentrale', 'Zweigstelle'];
 const verknuepfungsarten = ['Muttergesellschaft', 'Tochtergesellschaft', 'Schwestergesellschaft'];
 
@@ -28,7 +27,7 @@ const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
     kategorie: unternehmen.kategorie || '',
     zentraleMail: unternehmen.zentraleMail || '',
     zentralTelefon: unternehmen.zentralTelefon || '',
-    hauptansprechpartner: unternehmen.hauptansprechpartner || '',
+    hauptansprechpartner: unternehmen.hauptansprechpartner || '', // Hauptansprechpartner
     vermittlungsprovision: unternehmen.vermittlungsprovision || '',
     vermittlungsprovisionIntervall: unternehmen.vermittlungsprovisionIntervall || '',
     internerBetreuer: unternehmen.internerBetreuer || '',
@@ -38,8 +37,10 @@ const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
     usbBeschreibung: unternehmen.usbBeschreibung || '',
     interneNotizen: unternehmen.interneNotizen || '',
   });
+
   const [isEditing, setIsEditing] = useState(false);
   const [users, setUsers] = useState<any[]>([]); // Liste der Benutzer
+  const [contacts, setContacts] = useState<any[]>([]); // Liste der verknüpften Kontakte
 
   useEffect(() => {
     // API-Aufruf, um alle Benutzer zu laden
@@ -56,8 +57,22 @@ const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
       }
     };
 
+    const fetchContacts = async () => {
+      try {
+        const response = await fetch(`/api/linkedContacts?currentCompanyId=${unternehmen.id}`);
+        if (!response.ok) {
+          throw new Error('Fehler beim Laden der Kontakte');
+        }
+        const data = await response.json();
+        setContacts(data);
+      } catch (error) {
+        console.error('Fehler beim Laden der verknüpften Kontakte:', error);
+      }
+    };
+
     fetchUsers();
-  }, []);
+    fetchContacts();
+  }, [unternehmen.id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -321,14 +336,21 @@ const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
               <label htmlFor="hauptansprechpartner" className="block text-gray-700 font-bold mb-2">
                 Hauptansprechpartner
               </label>
-              <input
+              <select
                 id="hauptansprechpartner"
                 name="hauptansprechpartner"
                 className="bg-gray-100 p-2 rounded min-h-10 flex items-center w-full"
-                value={formData.hauptansprechpartner || 'Dummy Name'}
-                onChange={handleChange}
+                value={formData.hauptansprechpartner || ''} // Sicherstellen, dass der Wert niemals null ist
+                onChange={(e) => setFormData({ ...formData, hauptansprechpartner: e.target.value })} // Den richtigen Wert speichern
                 disabled={!isEditing}
-              />
+              >
+                <option value="">Kein Ansprechpartner ausgewählt</option>
+                {contacts.map((contact) => (
+                  <option key={contact.id} value={contact.id}>
+                    {contact.vorname} {contact.nachname}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="h-20"></div> {/* Spacer */}
             <div>
