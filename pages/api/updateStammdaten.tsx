@@ -21,19 +21,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     linkedin,
     xing,
     status,
-    kategorie, // Hier wird der Wert von der Anfrage empfangen
+    kategorie,
     zentraleMail,
     zentralTelefon,
     vermittlungsprovision,
     usbBeschreibung,
     interneNotizen,
+    betreuerId, // Hinzugefügt: betreuerId vom Request
   } = req.body;
 
   try {
-    // Umwandlung des `kategorie`-Werts in eine Ganzzahl oder Setzen auf `undefined`, wenn der Wert nicht da ist
     const kategorieValue: number | undefined = kategorie ? parseInt(kategorie, 10) : undefined;
 
-    // Prisma erwartet keinen `null`-Wert für `number`, sondern entweder eine Zahl oder `undefined`
     const updateData: any = {
       name,
       strasse,
@@ -50,9 +49,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       vermittlungsprovision,
       usbBeschreibung,
       interneNotizen,
+      betreuerId, // Aktualisiert: User ID für internen Betreuer
     };
 
-    // Nur wenn `kategorie` gesetzt ist, fügen wir es zum `data`-Objekt hinzu
     if (kategorieValue !== undefined) {
       updateData.kategorie = kategorieValue;
     }

@@ -1,8 +1,7 @@
 // components/unternehmen/stammdaten.tsx
-
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { FaStar, FaEdit, FaSave } from 'react-icons/fa';
@@ -13,6 +12,7 @@ const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
   const [formData, setFormData] = useState({
     ...unternehmen,
     name: unternehmen.name || '',
+    betreuerId: unternehmen.betreuerId || '',
     strasse: unternehmen.strasse || '',
     postleitzahl: unternehmen.postleitzahl || '',
     stadt: unternehmen.stadt || '',
@@ -36,6 +36,25 @@ const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
     interneNotizen: unternehmen.interneNotizen || '',
   });
   const [isEditing, setIsEditing] = useState(false);
+  const [users, setUsers] = useState<any[]>([]); // Liste der Benutzer
+
+  useEffect(() => {
+    // API-Aufruf, um alle Benutzer zu laden
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch('/api/users');
+        if (!response.ok) {
+          throw new Error('Fehler beim Laden der Benutzerliste');
+        }
+        const data = await response.json();
+        setUsers(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -50,11 +69,10 @@ const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
           body: JSON.stringify(formData),
         });
         const result = await response.json();
-        if (response.ok) {
-          console.log('Daten erfolgreich aktualisiert:', result);
-        } else {
+        if (!response.ok) {
           throw new Error('Fehler beim Aktualisieren der Daten: ' + result.error);
         }
+        console.log('Daten erfolgreich aktualisiert:', result);
       } catch (error) {
         console.error('Update fehlgeschlagen:', error);
       }
@@ -316,14 +334,21 @@ const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
                 <label htmlFor="internerBetreuer" className="block text-gray-700 font-bold mb-2">
                   Interner Betreuer
                 </label>
-                <input
+                <select
                   id="internerBetreuer"
-                  name="internerBetreuer"
+                  name="betreuerId"
                   className="bg-gray-100 p-2 rounded min-h-10 flex items-center w-full"
-                  value={formData.internerBetreuer}
+                  value={formData.betreuerId}
                   onChange={handleChange}
                   disabled={!isEditing}
-                />
+                >
+                  <option value="">Kein Betreuer ausgewählt</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.vorname} {user.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label htmlFor="affiliate" className="block text-gray-700 font-bold mb-2">
