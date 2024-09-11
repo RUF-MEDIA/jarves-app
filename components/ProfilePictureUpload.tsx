@@ -1,21 +1,18 @@
-'use client';
-
 import { useState } from 'react';
 
-export default function ProfilePictureUpload({ onUploadSuccess }) {
-  const [file, setFile] = useState(null);
+interface ProfilePictureUploadProps {
+  onUploadSuccess: () => void; // Definiere den Typ für onUploadSuccess
+}
+
+export default function ProfilePictureUpload({ onUploadSuccess }: ProfilePictureUploadProps) {
+  const [file, setFile] = useState<File | null>(null); // Typ für file hinzufügen
   const [uploadMessage, setUploadMessage] = useState('');
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-  };
-
-  const handleProfilePictureUpload = async () => {
-    const token = localStorage.getItem('token');
-    console.log('Token in Frontend:', token); // Token prüfen
+  const handleUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
 
     if (!file) {
-      console.error('No file selected');
+      setUploadMessage('Bitte wählen Sie eine Datei aus.');
       return;
     }
 
@@ -23,36 +20,37 @@ export default function ProfilePictureUpload({ onUploadSuccess }) {
     formData.append('profilBild', file);
 
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch('/api/upload-profile-picture', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`, // Token prüfen
+          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });
 
-      const data = await response.json();
-      if (!response.ok) {
-        console.error('Error uploading picture:', data.message);
-        setUploadMessage('Upload failed: ' + data.message);
+      if (response.ok) {
+        onUploadSuccess();
+        setUploadMessage('Profilbild erfolgreich hochgeladen!');
       } else {
-        console.log('Upload successful:', data.profilBildUrl);
-        setUploadMessage('Upload successful!');
-        onUploadSuccess(data.profilBildUrl);
+        setUploadMessage('Fehler beim Hochladen des Profilbilds.');
       }
     } catch (error) {
-      console.error('Error:', error);
-      setUploadMessage('Error uploading profile picture.');
+      console.error('Fehler beim Hochladen:', error);
+      setUploadMessage('Fehler beim Hochladen.');
     }
   };
 
   return (
-    <div className="profile-picture-upload">
-      <input type="file" onChange={handleFileChange} />
-      <button onClick={handleProfilePictureUpload} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-        Upload Profile Picture
+    <form onSubmit={handleUpload} className="space-y-4">
+      <div>
+        <label htmlFor="file">Profilbild hochladen</label>
+        <input type="file" id="file" onChange={(e) => setFile(e.target.files?.[0] || null)} className="w-full" accept="image/*" />
+      </div>
+      <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg">
+        Hochladen
       </button>
-      {uploadMessage && <p>{uploadMessage}</p>}
-    </div>
+      {uploadMessage && <p className="text-green-500 mt-4">{uploadMessage}</p>}
+    </form>
   );
 }
