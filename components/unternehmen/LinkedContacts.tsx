@@ -21,7 +21,6 @@ const LinkedContacts = ({ currentCompanyId }: { currentCompanyId: string }) => {
   const [newContactId, setNewContactId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Laden der verknüpften Ansprechpartner
   useEffect(() => {
     const fetchLinkedContacts = async () => {
       try {
@@ -41,7 +40,6 @@ const LinkedContacts = ({ currentCompanyId }: { currentCompanyId: string }) => {
     fetchLinkedContacts();
   }, [currentCompanyId]);
 
-  // Laden aller Ansprechpartner
   useEffect(() => {
     const fetchAllContacts = async () => {
       try {
@@ -82,7 +80,6 @@ const LinkedContacts = ({ currentCompanyId }: { currentCompanyId: string }) => {
         throw new Error('Failed to link contact');
       }
 
-      // Aktualisieren der verknüpften Ansprechpartner
       const updatedContacts = await fetch(`/api/linkedContacts?currentCompanyId=${currentCompanyId}`).then((res) => res.json());
       setContacts(updatedContacts);
 
@@ -125,35 +122,34 @@ const LinkedContacts = ({ currentCompanyId }: { currentCompanyId: string }) => {
     <div className="flex flex-wrap gap-2">
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogTrigger asChild>
-          <Button
-            className="h-full bg-gray-200 hover:bg-gray-300 text-gray-800 flex flex-col items-center justify-center transition-colors duration-200"
-            style={{ width: '60px', minHeight: '100px' }}
-          >
-            <PlusCircle size={24} />
-            <span className="text-xs mt-2">Neu</span>
+          <Button className="h-full bg-gray-200 hover:bg-gray-300 text-gray-800 flex flex-col items-center justify-center transition-colors duration-200 w-12 min-h-[80px]">
+            <PlusCircle size={20} />
+            <span className="text-xs mt-1">Neu</span>
           </Button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Ansprechpartner verknüpfen</DialogTitle>
+            <DialogTitle className="text-sm">Ansprechpartner verknüpfen</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleAddContact} className="space-y-4">
+          <form onSubmit={handleAddContact} className="space-y-2">
             <div>
-              <Label htmlFor="newContactId">Ansprechpartner auswählen</Label>
+              <Label htmlFor="newContactId" className="text-sm">
+                Ansprechpartner auswählen
+              </Label>
               <Select value={newContactId} onValueChange={setNewContactId}>
-                <SelectTrigger>
+                <SelectTrigger className="text-sm">
                   <SelectValue placeholder="Wählen Sie einen Ansprechpartner" />
                 </SelectTrigger>
                 <SelectContent>
                   {allContacts.map((contact) => (
-                    <SelectItem key={contact.id} value={contact.id}>
+                    <SelectItem key={contact.id} value={contact.id} className="text-sm">
                       {contact.vorname} {contact.nachname}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full text-sm py-1">
               Verknüpfen
             </Button>
           </form>
@@ -161,19 +157,19 @@ const LinkedContacts = ({ currentCompanyId }: { currentCompanyId: string }) => {
       </Dialog>
 
       {contacts.map((contact) => (
-        <div key={contact.id} className="relative w-1/4 min-w-[180px]">
-          <div className="p-4 bg-gray-100 rounded-lg flex flex-col justify-between relative min-h-[100px]">
+        <div key={contact.id} className="relative w-1/5 min-w-[160px]">
+          <div className="p-2 bg-gray-100 rounded-lg flex flex-col justify-between relative min-h-[80px]">
             <button
-              className="absolute top-2 right-2 text-red-600 hover:text-red-800"
+              className="absolute top-1 right-1 text-red-600 hover:text-red-800"
               onClick={() => handleRemoveContact(contact.id)}
               aria-label="Entfernen"
             >
-              <XCircle size={18} />
+              <XCircle size={16} />
             </button>
-            <h3 className="font-semibold text-sm text-blue-600 hover:underline">
+            <h3 className="font-semibold text-xs text-blue-600 hover:underline">
               {contact.vorname} {contact.nachname}
             </h3>
-            <p className="text-xs text-gray-600 mt-2">{contact.kategorie || 'Keine Kategorie angegeben'}</p>
+            <p className="text-xs text-gray-600 mt-1">{contact.kategorie || 'Keine Kategorie angegeben'}</p>
           </div>
         </div>
       ))}

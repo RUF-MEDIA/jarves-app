@@ -122,28 +122,27 @@ const LinkedCompanies = ({ currentCompanyId }: { currentCompanyId: string }) => 
     <div className="flex flex-wrap gap-2">
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogTrigger asChild>
-          <Button
-            className="h-full bg-gray-200 hover:bg-gray-300 text-gray-800 flex flex-col items-center justify-center transition-colors duration-200"
-            style={{ width: '60px', minHeight: '100px' }}
-          >
-            <PlusCircle size={24} />
-            <span className="text-xs mt-2">Neu</span>
+          <Button className="h-full bg-gray-200 hover:bg-gray-300 text-gray-800 flex flex-col items-center justify-center transition-colors duration-200 w-12 min-h-[80px]">
+            <PlusCircle size={20} />
+            <span className="text-xs mt-1">Neu</span>
           </Button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Unternehmen verknüpfen</DialogTitle>
+            <DialogTitle className="text-sm">Unternehmen verknüpfen</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleAddCompany} className="space-y-4">
+          <form onSubmit={handleAddCompany} className="space-y-2">
             <div>
-              <Label htmlFor="newCompanyId">Unternehmen auswählen</Label>
+              <Label htmlFor="newCompanyId" className="text-sm">
+                Unternehmen auswählen
+              </Label>
               <Select value={newCompanyId} onValueChange={setNewCompanyId}>
-                <SelectTrigger>
+                <SelectTrigger className="text-sm">
                   <SelectValue placeholder="Wählen Sie ein Unternehmen" />
                 </SelectTrigger>
                 <SelectContent>
                   {allCompanies.map((company) => (
-                    <SelectItem key={company.id} value={company.id}>
+                    <SelectItem key={company.id} value={company.id} className="text-sm">
                       {company.name}
                     </SelectItem>
                   ))}
@@ -151,19 +150,27 @@ const LinkedCompanies = ({ currentCompanyId }: { currentCompanyId: string }) => 
               </Select>
             </div>
             <div>
-              <Label htmlFor="unternehmensverknuepfung">Art der Verknüpfung</Label>
+              <Label htmlFor="unternehmensverknuepfung" className="text-sm">
+                Art der Verknüpfung
+              </Label>
               <Select value={unternehmensverknuepfung} onValueChange={setUnternehmensverknuepfung}>
-                <SelectTrigger>
+                <SelectTrigger className="text-sm">
                   <SelectValue placeholder="Wählen Sie die Art der Verknüpfung" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Muttergesellschaft">Muttergesellschaft</SelectItem>
-                  <SelectItem value="Tochtergesellschaft">Tochtergesellschaft</SelectItem>
-                  <SelectItem value="Schwestergesellschaft">Schwestergesellschaft</SelectItem>
+                  <SelectItem value="Muttergesellschaft" className="text-sm">
+                    Muttergesellschaft
+                  </SelectItem>
+                  <SelectItem value="Tochtergesellschaft" className="text-sm">
+                    Tochtergesellschaft
+                  </SelectItem>
+                  <SelectItem value="Schwestergesellschaft" className="text-sm">
+                    Schwestergesellschaft
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full text-sm py-1">
               Verknüpfen
             </Button>
           </form>
@@ -171,24 +178,22 @@ const LinkedCompanies = ({ currentCompanyId }: { currentCompanyId: string }) => 
       </Dialog>
 
       {companies.map((company) => (
-        <div key={company.id} className="relative w-1/4">
+        <div key={company.id} className="relative w-1/5">
           <div
-            className={`p-4 rounded-lg flex flex-col justify-between transition-colors duration-200 hover:bg-opacity-80 ${
-              company.id === currentCompanyId ? 'bg-blue-100 hover:bg-blue-200' : 'bg-gray-100 hover:bg-gray-200'
-            }`}
-            style={{ minHeight: '100px' }}
+            className="p-2 rounded-lg flex flex-col justify-between transition-colors duration-200 hover:bg-opacity-80 bg-gray-100 hover:bg-gray-200"
+            style={{ minHeight: '80px' }}
           >
             <button
-              className="absolute top-2 right-2 text-red-600 hover:text-red-800"
+              className="absolute top-1 right-1 text-red-600 hover:text-red-800"
               onClick={() => handleRemoveCompany(company.id)}
               aria-label="Entfernen"
             >
-              <XCircle size={18} />
+              <XCircle size={16} />
             </button>
             <Link href={`/kunden/${company.id}`}>
-              <h3 className="font-semibold text-sm truncate text-blue-600 hover:underline">{company.name}</h3>
+              <h3 className="font-semibold text-xs truncate text-blue-600 hover:underline">{company.name}</h3>
             </Link>
-            <p className="text-xs text-gray-600 truncate mt-2">{company.unternehmensverknuepfung || 'Keine Verknüpfung'}</p>
+            <p className="text-xs text-gray-600 truncate mt-1">{company.unternehmensverknuepfung || 'Keine Verknüpfung'}</p>
           </div>
         </div>
       ))}
