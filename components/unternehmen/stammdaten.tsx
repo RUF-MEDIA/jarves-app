@@ -124,6 +124,12 @@ const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
           {isEditing ? <FaSave /> : <FaEdit />} {isEditing ? 'Speichern' : 'Bearbeiten'}
         </Button>
       </div>
+      {/* Hinweis für den Bearbeitungsmodus */}
+      {isEditing && (
+        <div className="bg-blue-100 border border-blue-500 text-blue-700 p-2 rounded mb-4">
+          <strong>Hinweis:</strong> Sie befinden sich im Bearbeitungsmodus.
+        </div>
+      )}
       <form onSubmit={(e) => e.preventDefault()} className="grid grid-cols-1 gap-6 w-full p-4 text-sm">
         <div className="grid grid-cols-2 gap-6">
           {/* Linke Spalte */}

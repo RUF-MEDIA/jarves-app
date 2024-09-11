@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     strasse,
     postleitzahl,
     stadt,
-    standort, // Standort kommt als String aus dem Frontend
+    standort,
     homepage,
     jobsite,
     linkedin,
@@ -28,31 +28,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     usbBeschreibung,
     interneNotizen,
     betreuerId,
-    unternehmensverknuepfung, // Verknüpfung vom Frontend
-    hauptansprechpartnerId, // Hinzugefügt: HauptansprechpartnerId vom Frontend
+    unternehmensverknuepfung,
+    hauptansprechpartnerId,
   } = req.body;
 
   try {
-    // Validierung für `kategorie`-Wert
-    const kategorieValue: number | undefined = kategorie ? parseInt(kategorie, 10) : undefined;
+    // Überprüfe, ob die Betreuer-ID gültig ist
+    if (betreuerId) {
+      const betreuerExists = await prisma.user.findUnique({ where: { id: betreuerId } });
+      if (!betreuerExists) {
+        return res.status(400).json({ message: 'Betreuer-ID nicht gültig' });
+      }
+    }
 
-    // Validierung für `standort`: Überprüfen, ob der Wert mit dem Prisma-Enum übereinstimmt
+    // Überprüfe, ob die Hauptansprechpartner-ID gültig ist
+    if (hauptansprechpartnerId) {
+      const hauptansprechpartnerExists = await prisma.ansprechpartner.findUnique({ where: { id: hauptansprechpartnerId } });
+      if (!hauptansprechpartnerExists) {
+        return res.status(400).json({ message: 'Hauptansprechpartner-ID nicht gültig' });
+      }
+    }
+
+    // Validierungen für Standort und Unternehmensverknüpfung
     const validStandort: Standort | null = Object.values(Standort).includes(standort as Standort) ? (standort as Standort) : null;
-
-    // Validierung für `unternehmensverknuepfung`: Überprüfen, ob der Wert mit dem Prisma-Enum übereinstimmt
     const validVerknuepfung: Unternehmensverknuepfung | null = Object.values(Unternehmensverknuepfung).includes(
       unternehmensverknuepfung as Unternehmensverknuepfung
     )
       ? (unternehmensverknuepfung as Unternehmensverknuepfung)
       : null;
 
-    // Aufbau der Daten für das Update
+    // Update-Daten vorbereiten
     const updateData: any = {
       name,
       strasse,
       postleitzahl,
       stadt,
-      standort: validStandort, // Standort als Prisma Enum oder null, wenn ungültig
+      standort: validStandort,
       homepage,
       jobsite,
       linkedin,
@@ -64,12 +75,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       usbBeschreibung,
       interneNotizen,
       betreuerId,
-      unternehmensverknuepfung: validVerknuepfung, // Verknüpfung als Prisma Enum oder null, wenn ungültig
-      hauptansprechpartnerId, // Speichert den Hauptansprechpartner
+      unternehmensverknuepfung: validVerknuepfung,
+      hauptansprechpartnerId,
     };
 
-    if (kategorieValue !== undefined) {
-      updateData.kategorie = kategorieValue;
+    // Optional: Kategoriewert hinzufügen
+    if (kategorie) {
+      updateData.kategorie = parseInt(kategorie, 10);
     }
 
     const updatedUnternehmen = await prisma.unternehmen.update({

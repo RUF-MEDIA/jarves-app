@@ -14,15 +14,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    // Nur relevante Felder selektieren
     const currentCompany = await prisma.unternehmen.findUnique({
       where: { id: currentCompanyId },
-      include: { verknuepfteUnternehmen: true },
+      select: {
+        id: true,
+        name: true,
+        unternehmensverknuepfung: true,
+        verknuepfteUnternehmen: {
+          select: {
+            id: true,
+            name: true,
+            unternehmensverknuepfung: true,
+          },
+        },
+      },
     });
 
     if (!currentCompany) {
       return res.status(404).json({ message: 'Company not found' });
     }
 
+    // Formatierte Liste der verknüpften Unternehmen
     const linkedCompanies = [
       {
         id: currentCompany.id,
