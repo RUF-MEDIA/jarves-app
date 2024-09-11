@@ -8,6 +8,9 @@ import { FaStar, FaEdit, FaSave } from 'react-icons/fa';
 
 const statuses = ['inaktiv', 'Zielkunde', 'pending', 'aktiv', 'Rahmenvertragspartner', 'nicht_kontaktieren'];
 
+const standorte = ['Zentrale', 'Zweigstelle'];
+const verknuepfungsarten = ['Muttergesellschaft', 'Tochtergesellschaft', 'Schwestergesellschaft'];
+
 const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
   const [formData, setFormData] = useState({
     ...unternehmen,
@@ -172,14 +175,20 @@ const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
               <label htmlFor="standort" className="block text-gray-700 font-bold mb-2">
                 Standort
               </label>
-              <input
+              <select
                 id="standort"
                 name="standort"
                 className="bg-gray-100 p-2 rounded min-h-10 flex items-center w-full"
                 value={formData.standort}
                 onChange={handleChange}
                 disabled={!isEditing}
-              />
+              >
+                {standorte.map((standort) => (
+                  <option key={standort} value={standort}>
+                    {standort}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="h-20"></div> {/* Spacer */}
             <div>
@@ -262,7 +271,26 @@ const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
               </label>
               <div className="min-h-10 flex items-center">{renderStars(formData.kategorie)}</div>
             </div>
-            <div className="h-20"></div> {/* Spacer */}
+            <div>
+              <label htmlFor="unternehmensverknuepfung" className="block text-gray-700 font-bold mb-2">
+                Unternehmensverknüpfung
+              </label>
+              <select
+                id="unternehmensverknuepfung"
+                name="unternehmensverknuepfung"
+                className="bg-gray-100 p-2 rounded min-h-10 flex items-center w-full"
+                value={formData.unternehmensverknuepfung}
+                onChange={handleChange}
+                disabled={!isEditing}
+              >
+                <option value="">Keine Verknüpfung</option>
+                {verknuepfungsarten.map((art) => (
+                  <option key={art} value={art}>
+                    {art}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div>
               <label htmlFor="zentraleMail" className="block text-gray-700 font-bold mb-2">
                 Zentrale Mail

@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { PrismaClient, Standort } from '@prisma/client';
+import { PrismaClient, Standort, Unternehmensverknuepfung } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     strasse,
     postleitzahl,
     stadt,
-    standort,
+    standort, // Standort kommt als String aus dem Frontend
     homepage,
     jobsite,
     linkedin,
@@ -27,18 +27,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     vermittlungsprovision,
     usbBeschreibung,
     interneNotizen,
-    betreuerId, // Hinzugefügt: betreuerId vom Request
+    betreuerId,
+    unternehmensverknuepfung, // Verknüpfung vom Frontend
   } = req.body;
 
   try {
+    // Validierung für `kategorie`-Wert
     const kategorieValue: number | undefined = kategorie ? parseInt(kategorie, 10) : undefined;
 
+    // Validierung für `standort`: Überprüfen, ob der Wert mit dem Prisma-Enum übereinstimmt
+    const validStandort: Standort | null = Object.values(Standort).includes(standort as Standort) ? (standort as Standort) : null;
+
+    // Validierung für `unternehmensverknuepfung`: Überprüfen, ob der Wert mit dem Prisma-Enum übereinstimmt
+    const validVerknuepfung: Unternehmensverknuepfung | null = Object.values(Unternehmensverknuepfung).includes(
+      unternehmensverknuepfung as Unternehmensverknuepfung
+    )
+      ? (unternehmensverknuepfung as Unternehmensverknuepfung)
+      : null;
+
+    // Aufbau der Daten für das Update
     const updateData: any = {
       name,
       strasse,
       postleitzahl,
       stadt,
-      standort: standort || null,
+      standort: validStandort, // Standort als Prisma Enum oder null, wenn ungültig
       homepage,
       jobsite,
       linkedin,
@@ -49,7 +62,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       vermittlungsprovision,
       usbBeschreibung,
       interneNotizen,
-      betreuerId, // Aktualisiert: User ID für internen Betreuer
+      betreuerId,
+      unternehmensverknuepfung: validVerknuepfung, // Verknüpfung als Prisma Enum oder null, wenn ungültig
     };
 
     if (kategorieValue !== undefined) {
