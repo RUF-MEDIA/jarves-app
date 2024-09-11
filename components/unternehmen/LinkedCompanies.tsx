@@ -1,9 +1,8 @@
-// components/unternehmen/LinkedCompanies.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -80,7 +79,6 @@ const LinkedCompanies = ({ currentCompanyId }: { currentCompanyId: string }) => 
         throw new Error('Failed to link company');
       }
 
-      // Aktualisiere die Liste der verknüpften Unternehmen
       const updatedCompanies = await fetch(`/api/linkedCompanies?currentCompanyId=${currentCompanyId}`).then((res) => res.json());
       setCompanies(updatedCompanies);
 
@@ -89,6 +87,30 @@ const LinkedCompanies = ({ currentCompanyId }: { currentCompanyId: string }) => 
       setUnternehmensverknuepfung('');
     } catch (error) {
       console.error('Error linking company:', error);
+    }
+  };
+
+  const handleRemoveCompany = async (companyId: string) => {
+    try {
+      const response = await fetch('/api/unlinkCompany', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          currentCompanyId,
+          companyId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to unlink company');
+      }
+
+      const updatedCompanies = await fetch(`/api/linkedCompanies?currentCompanyId=${currentCompanyId}`).then((res) => res.json());
+      setCompanies(updatedCompanies);
+    } catch (error) {
+      console.error('Error unlinking company:', error);
     }
   };
 
@@ -149,17 +171,26 @@ const LinkedCompanies = ({ currentCompanyId }: { currentCompanyId: string }) => 
       </Dialog>
 
       {companies.map((company) => (
-        <Link
-          key={company.id}
-          href={`/kunden/${company.id}`}
-          className={`p-4 rounded-lg flex flex-col justify-between transition-colors duration-200 hover:bg-opacity-80 ${
-            company.id === currentCompanyId ? 'bg-blue-100 hover:bg-blue-200' : 'bg-gray-100 hover:bg-gray-200'
-          }`}
-          style={{ width: 'calc(25% - 0.5rem)', minHeight: '100px' }}
-        >
-          <h3 className="font-semibold text-sm truncate">{company.name}</h3>
-          <p className="text-xs text-gray-600 truncate mt-2">{company.unternehmensverknuepfung || 'Keine Verknüpfung'}</p>
-        </Link>
+        <div key={company.id} className="relative w-1/4">
+          <div
+            className={`p-4 rounded-lg flex flex-col justify-between transition-colors duration-200 hover:bg-opacity-80 ${
+              company.id === currentCompanyId ? 'bg-blue-100 hover:bg-blue-200' : 'bg-gray-100 hover:bg-gray-200'
+            }`}
+            style={{ minHeight: '100px' }}
+          >
+            <button
+              className="absolute top-2 right-2 text-red-600 hover:text-red-800"
+              onClick={() => handleRemoveCompany(company.id)}
+              aria-label="Entfernen"
+            >
+              <XCircle size={18} />
+            </button>
+            <Link href={`/kunden/${company.id}`}>
+              <h3 className="font-semibold text-sm truncate text-blue-600 hover:underline">{company.name}</h3>
+            </Link>
+            <p className="text-xs text-gray-600 truncate mt-2">{company.unternehmensverknuepfung || 'Keine Verknüpfung'}</p>
+          </div>
+        </div>
       ))}
     </div>
   );
