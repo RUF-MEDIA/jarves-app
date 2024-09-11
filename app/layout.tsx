@@ -1,4 +1,3 @@
-// app/layout.tsx
 'use client'; // Füge dies hinzu, um die Komponente als Client-Komponente zu deklarieren
 
 import './globals.css';
@@ -7,6 +6,7 @@ import Script from 'next/script';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Inter } from 'next/font/google';
+import { usePathname } from 'next/navigation'; // Importiere usePathname
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -17,6 +17,7 @@ export default function RootLayout({
 }>) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const router = useRouter();
+  const pathname = usePathname(); // Verwende usePathname, um den aktuellen Pfad abzurufen
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -24,11 +25,12 @@ export default function RootLayout({
       setIsLoggedIn(true);
     } else {
       setIsLoggedIn(false);
-      if (router.pathname !== '/login') {
+      if (pathname !== '/login') {
+        // Verwende den Pfadnamen aus usePathname
         router.push('/login');
       }
     }
-  }, [router]);
+  }, [router, pathname]); // Füge pathname zu den Abhängigkeiten hinzu
 
   return (
     <html lang="de">
