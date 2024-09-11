@@ -12,7 +12,7 @@ const Header2 = () => {
           <Link href="/kunden" legacyBehavior>
             <a
               className={`py-3 px-2 ${
-                pathname.startsWith('/kunden') ? 'bg-slate-100 text-gray-900' : 'text-gray-700 hover:bg-slate-100 hover:text-gray-900'
+                pathname?.startsWith('/kunden') ? 'bg-slate-100 text-gray-900' : 'text-gray-700 hover:bg-slate-100 hover:text-gray-900'
               } dark:text-gray-400 dark:hover:text-white dark:hover:bg-slate-700`}
             >
               Kunden
@@ -21,7 +21,7 @@ const Header2 = () => {
           <Link href="/kontaktperson" legacyBehavior>
             <a
               className={`py-3 px-2 ${
-                pathname.startsWith('/kontaktperson') ? 'bg-slate-100 text-gray-900' : 'text-gray-700 hover:bg-slate-100 hover:text-gray-900'
+                pathname?.startsWith('/kontaktperson') ? 'bg-slate-100 text-gray-900' : 'text-gray-700 hover:bg-slate-100 hover:text-gray-900'
               } dark:text-gray-400 dark:hover:text-white dark:hover:bg-slate-700`}
             >
               Kontaktperson
@@ -30,7 +30,7 @@ const Header2 = () => {
           <Link href="/jobs" legacyBehavior>
             <a
               className={`py-3 px-2 ${
-                pathname.startsWith('/jobs') ? 'bg-slate-100 text-gray-900' : 'text-gray-700 hover:bg-slate-100 hover:text-gray-900'
+                pathname?.startsWith('/jobs') ? 'bg-slate-100 text-gray-900' : 'text-gray-700 hover:bg-slate-100 hover:text-gray-900'
               } dark:text-gray-400 dark:hover:text-white dark:hover:bg-slate-700`}
             >
               Jobs
@@ -39,7 +39,7 @@ const Header2 = () => {
           <Link href="/talente" legacyBehavior>
             <a
               className={`py-3 px-2 ${
-                pathname.startsWith('/talente') ? 'bg-slate-100 text-gray-900' : 'text-gray-700 hover:bg-slate-100 hover:text-gray-900'
+                pathname?.startsWith('/talente') ? 'bg-slate-100 text-gray-900' : 'text-gray-700 hover:bg-slate-100 hover:text-gray-900'
               } dark:text-gray-400 dark:hover:text-white dark:hover:bg-slate-700`}
             >
               Talente
@@ -48,7 +48,7 @@ const Header2 = () => {
           <Link href="/sales" legacyBehavior>
             <a
               className={`py-3 px-2 ${
-                pathname.startsWith('/sales') ? 'bg-slate-100 text-gray-900' : 'text-gray-700 hover:bg-slate-100 hover:text-gray-900'
+                pathname?.startsWith('/sales') ? 'bg-slate-100 text-gray-900' : 'text-gray-700 hover:bg-slate-100 hover:text-gray-900'
               } dark:text-gray-400 dark:hover:text-white dark:hover:bg-slate-700`}
             >
               Sales
@@ -57,7 +57,7 @@ const Header2 = () => {
           <Link href="/affiliate" legacyBehavior>
             <a
               className={`py-3 px-2 ${
-                pathname.startsWith('/affiliate') ? 'bg-slate-100 text-gray-900' : 'text-gray-700 hover:bg-slate-100 hover:text-gray-900'
+                pathname?.startsWith('/affiliate') ? 'bg-slate-100 text-gray-900' : 'text-gray-700 hover:bg-slate-100 hover:text-gray-900'
               } dark:text-gray-400 dark:hover:text-white dark:hover:bg-slate-700`}
             >
               Affiliate
@@ -66,7 +66,7 @@ const Header2 = () => {
           <Link href="/stellenanzeigen" legacyBehavior>
             <a
               className={`py-3 px-2 ${
-                pathname.startsWith('/stellenanzeigen') ? 'bg-slate-100 text-gray-900' : 'text-gray-700 hover:bg-slate-100 hover:text-gray-900'
+                pathname?.startsWith('/stellenanzeigen') ? 'bg-slate-100 text-gray-900' : 'text-gray-700 hover:bg-slate-100 hover:text-gray-900'
               } dark:text-gray-400 dark:hover:text-white dark:hover:bg-slate-700`}
             >
               Stellenanzeigen
