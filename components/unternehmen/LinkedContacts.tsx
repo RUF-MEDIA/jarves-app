@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, XCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -11,7 +11,7 @@ interface Contact {
   id: string;
   vorname: string;
   nachname: string;
-  kategorie: string | null; // Kategorie statt Position
+  kategorie: string | null;
 }
 
 const LinkedContacts = ({ currentCompanyId }: { currentCompanyId: string }) => {
@@ -93,6 +93,30 @@ const LinkedContacts = ({ currentCompanyId }: { currentCompanyId: string }) => {
     }
   };
 
+  const handleRemoveContact = async (contactId: string) => {
+    try {
+      const response = await fetch('/api/unlinkContact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          currentCompanyId,
+          contactId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to unlink contact');
+      }
+
+      const updatedContacts = await fetch(`/api/linkedContacts?currentCompanyId=${currentCompanyId}`).then((res) => res.json());
+      setContacts(updatedContacts);
+    } catch (error) {
+      console.error('Error unlinking contact:', error);
+    }
+  };
+
   if (isLoading) {
     return <div>Lade Ansprechpartner...</div>;
   }
@@ -137,13 +161,20 @@ const LinkedContacts = ({ currentCompanyId }: { currentCompanyId: string }) => {
       </Dialog>
 
       {contacts.map((contact) => (
-        <div key={contact.id} className="p-4 bg-gray-100 rounded-lg">
-          <h3 className="font-semibold text-sm">
-            {contact.vorname} {contact.nachname}
-          </h3>
-          <p className="text-xs text-gray-600 mt-2">
-            {contact.kategorie || 'Keine Kategorie angegeben'} {/* Zeige die Kategorie oder einen Fallback */}
-          </p>
+        <div key={contact.id} className="relative w-1/4 min-w-[180px]">
+          <div className="p-4 bg-gray-100 rounded-lg flex flex-col justify-between relative min-h-[100px]">
+            <button
+              className="absolute top-2 right-2 text-red-600 hover:text-red-800"
+              onClick={() => handleRemoveContact(contact.id)}
+              aria-label="Entfernen"
+            >
+              <XCircle size={18} />
+            </button>
+            <h3 className="font-semibold text-sm text-blue-600 hover:underline">
+              {contact.vorname} {contact.nachname}
+            </h3>
+            <p className="text-xs text-gray-600 mt-2">{contact.kategorie || 'Keine Kategorie angegeben'}</p>
+          </div>
         </div>
       ))}
     </div>
