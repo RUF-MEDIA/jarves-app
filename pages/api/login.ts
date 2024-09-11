@@ -1,5 +1,3 @@
-// pages/api/login.ts
-
 import type { NextApiRequest, NextApiResponse } from 'next';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -18,11 +16,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ message: 'Missing email or password' });
   }
 
-  // Konvertiere die E-Mail in Kleinbuchstaben
   const normalizedEmail = email.toLowerCase();
 
   try {
-    // Benutzer anhand der E-Mail suchen
     const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
     });
@@ -31,18 +27,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Passwort prüfen
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid password' });
     }
 
-    // JWT erstellen
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '1h' });
 
     res.status(200).json({ token, message: 'Login successful' });
   } catch (error) {
-    console.error('Error logging in:', error.message);
-    res.status(500).json({ message: `Internal Server Error: ${error.message}` });
+    // Cast to Error oder Typüberprüfung durchführen
+    if (error instanceof Error) {
+      console.error('Error logging in:', error.message);
+      res.status(500).json({ message: `Internal Server Error: ${error.message}` });
+    } else {
+      console.error('Unexpected error:', error);
+      res.status(500).json({ message: 'An unexpected error occurred' });
+    }
   }
 }
