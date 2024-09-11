@@ -1,5 +1,3 @@
-// pages/api/register.ts
-
 import type { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '@/lib/prisma'; // Prisma Client
 import bcrypt from 'bcryptjs';
@@ -43,7 +41,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     res.status(201).json({ message: 'User registered successfully', user: newUser });
   } catch (error) {
-    console.error('Error registering user:', error.message);
-    res.status(500).json({ message: `Internal Server Error: ${error.message}` });
+    // Cast to Error oder Typüberprüfung
+    if (error instanceof Error) {
+      console.error('Error registering user:', error.message);
+      res.status(500).json({ message: `Internal Server Error: ${error.message}` });
+    } else {
+      console.error('Unexpected error:', error);
+      res.status(500).json({ message: 'An unexpected error occurred' });
+    }
   }
 }
