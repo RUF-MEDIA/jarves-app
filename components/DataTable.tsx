@@ -6,19 +6,12 @@ import { useState, useMemo, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FiSettings, FiArrowUp, FiArrowDown, FiFilter } from 'react-icons/fi';
 import { FaStar } from 'react-icons/fa';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import useSWR from 'swr';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
 import ColumnSelector from './ColumnSelector';
 import FilterModal from './FilterModal';
 import BulkActionSidebar from './BulkActionSidebar';
-import { statusOptions } from '@/constants/statusOptions';
-import { kategorieOptions } from '@/constants/kategorieOptions';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import useSWR from 'swr';
 
 interface Column {
   key: string;
@@ -30,7 +23,7 @@ interface DataTableProps<T> {
   apiEndpoint: string;
   columns: Column[];
   defaultSelectedColumns: string[];
-  betreuerList?: { id: string; name: string }[]; // Optional, spezifisch für bestimmte Tabellen
+  betreuerList?: { id: string; name: string }[];
   renderCell: (item: T, key: string) => React.ReactNode;
 }
 
@@ -54,58 +47,46 @@ export default function DataTable<T>({ apiEndpoint, columns, defaultSelectedColu
   }>({
     betreuer: 'all',
     letzteAenderungAm: { start: null, end: null },
-    status: [], // Initialisieren des Statusfilters als leeres Array
-    kategorie: [], // Initialisieren des Kategoriefilters als leeres Array
-    newStatus: '', // Initialisieren für Bulk-Aktionen
+    status: [],
+    kategorie: [],
+    newStatus: '',
     newBetreuer: '',
-    newKategorie: '',
+    newKategorie: [], // Hier als Array initialisiert
     newVerknuepfung: '',
   });
 
-  // Loggen der empfangenen Daten zur Überprüfung
   useEffect(() => {
     if (items) {
       console.log('Empfangene Daten:', items);
     }
   }, [items]);
 
-  // Ermitteln der verfügbaren Anfangsbuchstaben zur Filterung
   const availableLetters = useMemo(() => {
     if (!items) return [];
-    const letters = new Set(
-      items
-        .filter((item: any) => item.name) // Sicherstellen, dass 'name' existiert
-        .map((item: any) => item.name.charAt(0).toUpperCase())
-    );
+    const letters = new Set(items.filter((item: any) => item.name).map((item: any) => item.name.charAt(0).toUpperCase()));
     return Array.from(letters).sort();
   }, [items]);
 
-  // Anwenden des Filters basierend auf dem ausgewählten Buchstaben und anderen Filtern
   const filteredItems = useMemo(() => {
     if (!items) return [];
 
     return items.filter((item: any) => {
-      // Filter nach Anfangsbuchstabe
       if (filterLetter !== 'ALL' && item.name && !item.name.startsWith(filterLetter)) {
         return false;
       }
 
-      // Filter nach Betreuer
       if (filters.betreuer && filters.betreuer !== 'all' && item.betreuer?.id !== filters.betreuer) {
         return false;
       }
 
-      // Filter nach Status
       if (filters.status.length > 0 && !filters.status.includes(item.status)) {
         return false;
       }
 
-      // Filter nach Kategorie (Zahl)
       if (filters.kategorie.length > 0 && !filters.kategorie.includes(item.kategorie)) {
         return false;
       }
 
-      // Filter nach Letzte Änderung am (Datum)
       if (filters.letzteAenderungAm.start || filters.letzteAenderungAm.end) {
         const letzteAenderung = new Date(item.letzteAenderungAm);
         if (filters.letzteAenderungAm.start && letzteAenderung < filters.letzteAenderungAm.start) {
@@ -120,7 +101,6 @@ export default function DataTable<T>({ apiEndpoint, columns, defaultSelectedColu
     });
   }, [items, filterLetter, filters]);
 
-  // Anwenden der Sortierung
   const sortedItems = useMemo(() => {
     if (!filteredItems) return [];
     if (!sortConfig) return filteredItems;
@@ -146,21 +126,17 @@ export default function DataTable<T>({ apiEndpoint, columns, defaultSelectedColu
   if (error) return <div>Fehler beim Laden der Daten</div>;
   if (!items) return <div>Lade Daten...</div>;
 
-  // Funktion zur Änderung der ausgewählten Spalten mit Sortierung
   const handleColumnChange = (key: string) => {
     setSelectedColumns((prev) => {
       if (prev.includes(key)) {
-        // Entfernen der Spalte
         return prev.filter((col) => col !== key);
       } else {
-        // Hinzufügen der Spalte und Sortieren basierend auf der columns-Reihenfolge
         const newSelected = [...prev, key];
         return columns.filter((col) => newSelected.includes(col.key)).map((col) => col.key);
       }
     });
   };
 
-  // Funktion zur Handhabung der Sortierung
   const handleSort = (key: keyof T) => {
     let direction: 'asc' | 'desc' = 'asc';
     if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -169,7 +145,6 @@ export default function DataTable<T>({ apiEndpoint, columns, defaultSelectedColu
     setSortConfig({ key, direction });
   };
 
-  // Funktion zur Auswahl einzelner Zeilen
   const handleRowSelect = (id: string) => {
     setSelectedRows((prevSelected) => {
       const newSelected = new Set(prevSelected);
@@ -182,7 +157,6 @@ export default function DataTable<T>({ apiEndpoint, columns, defaultSelectedColu
     });
   };
 
-  // Funktion zur Auswahl oder Abwahl aller Zeilen
   const handleSelectAll = () => {
     if (selectedRows.size === items.length) {
       setSelectedRows(new Set());
@@ -191,7 +165,6 @@ export default function DataTable<T>({ apiEndpoint, columns, defaultSelectedColu
     }
   };
 
-  // Funktion zur Massenaktion (Update oder Delete)
   const confirmBulkAction = async (action: 'update' | 'delete') => {
     try {
       const selectedIds = Array.from(selectedRows);
@@ -213,7 +186,9 @@ export default function DataTable<T>({ apiEndpoint, columns, defaultSelectedColu
       } else {
         const updates: any = {};
         if (filters.newStatus) updates.status = filters.newStatus;
-        if (filters.newKategorie) updates.kategorie = parseInt(filters.newKategorie, 10);
+        if (filters.newKategorie.length > 0) {
+          updates.kategorie = filters.newKategorie.map((kategorie: string) => parseInt(kategorie, 10));
+        }
         if (filters.newBetreuer) updates.betreuerId = filters.newBetreuer;
         if (filters.newVerknuepfung) updates.unternehmensverknuepfung = filters.newVerknuepfung;
 
@@ -230,7 +205,7 @@ export default function DataTable<T>({ apiEndpoint, columns, defaultSelectedColu
           setFilters((prev) => ({
             ...prev,
             newStatus: '',
-            newKategorie: '',
+            newKategorie: [],
             newBetreuer: '',
             newVerknuepfung: '',
           }));
@@ -243,26 +218,6 @@ export default function DataTable<T>({ apiEndpoint, columns, defaultSelectedColu
     }
   };
 
-  // Funktion zur Darstellung von Sternen basierend auf der Kategorie (optional)
-  const renderStars = (rating: number | null) => {
-    const validRating = rating || 0;
-    return (
-      <div className="flex space-x-1">
-        {Array.from({ length: 5 }, (_, i) => (
-          <FaStar key={i} className="w-4 h-4" color={i < validRating ? 'gold' : 'gray'} />
-        ))}
-      </div>
-    );
-  };
-
-  // Funktion zur Formatierung von Datumsangaben (optional)
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('de-DE');
-  };
-
-  // Funktionen zum Setzen der Filter
   const handleBetreuerFilterChange = (betreuerId: string) => {
     setFilters((prev) => ({
       ...prev,
@@ -299,7 +254,6 @@ export default function DataTable<T>({ apiEndpoint, columns, defaultSelectedColu
     setCurrentFilterColumn(null);
   };
 
-  // Funktion zum Öffnen/Schließen des Filter-Modals
   const toggleFilterModal = (columnKey: string) => {
     if (currentFilterColumn === columnKey) {
       setCurrentFilterColumn(null);
@@ -377,7 +331,6 @@ export default function DataTable<T>({ apiEndpoint, columns, defaultSelectedColu
                 {/* Dynamische Darstellung der Zellen basierend auf den ausgewählten Spalten */}
                 {selectedColumns.map((colKey) => (
                   <TableCell key={colKey} className="px-4 py-2">
-                    {/* Hier verwenden wir die renderCell-Prop, um die Zellen anzuzeigen */}
                     {renderCell(item, colKey)}
                   </TableCell>
                 ))}
@@ -396,8 +349,8 @@ export default function DataTable<T>({ apiEndpoint, columns, defaultSelectedColu
         setNewStatus={(value: string) => setFilters((prev) => ({ ...prev, newStatus: value }))}
         newBetreuer={filters.newBetreuer || ''}
         setNewBetreuer={(value: string) => setFilters((prev) => ({ ...prev, newBetreuer: value }))}
-        newKategorie={filters.newKategorie || ''}
-        setNewKategorie={(value: string) => setFilters((prev) => ({ ...prev, newKategorie: value }))}
+        newKategorie={filters.newKategorie} // Hier ohne Fallback
+        setNewKategorie={(value: string[]) => setFilters((prev) => ({ ...prev, newKategorie: value }))}
         newVerknuepfung={filters.newVerknuepfung || ''}
         setNewVerknuepfung={(value: string) => setFilters((prev) => ({ ...prev, newVerknuepfung: value }))}
         onDelete={() => confirmBulkAction('delete')}
@@ -428,7 +381,7 @@ export default function DataTable<T>({ apiEndpoint, columns, defaultSelectedColu
           onBetreuerFilterChange={handleBetreuerFilterChange}
           onDateFilterChange={handleDateFilterChange}
           onStatusFilterChange={handleStatusFilterChange}
-          onKategorieFilterChange={handleKategorieFilterChange} // Hinzufügen des Kategorie-Handlers
+          onKategorieFilterChange={handleKategorieFilterChange}
           filters={filters}
         />
       )}
