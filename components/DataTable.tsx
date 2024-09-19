@@ -17,6 +17,8 @@ import 'react-datepicker/dist/react-datepicker.css';
 import ColumnSelector from './ColumnSelector';
 import FilterModal from './FilterModal';
 import BulkActionSidebar from './BulkActionSidebar';
+import { statusOptions } from '@/constants/statusOptions';
+import { kategorieOptions } from '@/constants/kategorieOptions';
 
 interface Column {
   key: string;
@@ -32,13 +34,7 @@ interface DataTableProps<T> {
   renderCell: (item: T, key: string) => React.ReactNode;
 }
 
-export function DataTable<T>({
-  apiEndpoint,
-  columns,
-  defaultSelectedColumns,
-  betreuerList = [],
-  renderCell, // Diese Funktion wird aus den Props verwendet
-}: DataTableProps<T>) {
+export default function DataTable<T>({ apiEndpoint, columns, defaultSelectedColumns, betreuerList = [], renderCell }: DataTableProps<T>) {
   const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
   const { data: items, error, mutate } = useSWR<T[]>(apiEndpoint, fetcher);
@@ -58,6 +54,12 @@ export function DataTable<T>({
   }>({
     betreuer: 'all',
     letzteAenderungAm: { start: null, end: null },
+    status: [], // Initialisieren des Statusfilters als leeres Array
+    kategorie: [], // Initialisieren des Kategoriefilters als leeres Array
+    newStatus: '', // Initialisieren für Bulk-Aktionen
+    newBetreuer: '',
+    newKategorie: '',
+    newVerknuepfung: '',
   });
 
   // Loggen der empfangenen Daten zur Überprüfung
@@ -90,6 +92,16 @@ export function DataTable<T>({
 
       // Filter nach Betreuer
       if (filters.betreuer && filters.betreuer !== 'all' && item.betreuer?.id !== filters.betreuer) {
+        return false;
+      }
+
+      // Filter nach Status
+      if (filters.status.length > 0 && !filters.status.includes(item.status)) {
+        return false;
+      }
+
+      // Filter nach Kategorie (Zahl)
+      if (filters.kategorie.length > 0 && !filters.kategorie.includes(item.kategorie)) {
         return false;
       }
 
@@ -199,10 +211,32 @@ export function DataTable<T>({
           console.error('Fehler beim Löschen der Unternehmen');
         }
       } else {
-        // Hier können spezifische Bulk-Update-Logiken implementiert werden
-        // Da die DataTable generisch ist, sollte die Logik hier flexibel gestaltet werden
-        // Zum Beispiel könnten Updates über Props an die DataTable übergeben werden
-        console.warn('Bulk-Update ist derzeit nicht implementiert.');
+        const updates: any = {};
+        if (filters.newStatus) updates.status = filters.newStatus;
+        if (filters.newKategorie) updates.kategorie = parseInt(filters.newKategorie, 10);
+        if (filters.newBetreuer) updates.betreuerId = filters.newBetreuer;
+        if (filters.newVerknuepfung) updates.unternehmensverknuepfung = filters.newVerknuepfung;
+
+        const response = await fetch('/api/bulkUpdateUnternehmen', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: selectedIds, updates }),
+        });
+
+        if (response.ok) {
+          console.log('Unternehmen erfolgreich aktualisiert');
+          await mutate();
+          setSelectedRows(new Set());
+          setFilters((prev) => ({
+            ...prev,
+            newStatus: '',
+            newKategorie: '',
+            newBetreuer: '',
+            newVerknuepfung: '',
+          }));
+        } else {
+          console.error('Fehler beim Aktualisieren der Unternehmen');
+        }
       }
     } catch (error) {
       console.error('Fehler bei der Massenaktion:', error);
@@ -242,6 +276,24 @@ export function DataTable<T>({
     setFilters((prev) => ({
       ...prev,
       letzteAenderungAm: { start, end },
+    }));
+    setIsFilterModalOpen(false);
+    setCurrentFilterColumn(null);
+  };
+
+  const handleStatusFilterChange = (selectedStatuses: string[]) => {
+    setFilters((prev) => ({
+      ...prev,
+      status: selectedStatuses,
+    }));
+    setIsFilterModalOpen(false);
+    setCurrentFilterColumn(null);
+  };
+
+  const handleKategorieFilterChange = (selectedKategorien: number[]) => {
+    setFilters((prev) => ({
+      ...prev,
+      kategorie: selectedKategorien,
     }));
     setIsFilterModalOpen(false);
     setCurrentFilterColumn(null);
@@ -293,7 +345,7 @@ export function DataTable<T>({
                         {col.filterable && (
                           <FiFilter
                             className={`w-4 h-4 text-gray-600 cursor-pointer hover:text-gray-800 ${
-                              filters[col.key] && filters[col.key] !== 'all' ? 'text-blue-600' : ''
+                              Array.isArray(filters[col.key]) && filters[col.key].length > 0 ? 'text-blue-600' : ''
                             }`}
                             onClick={() => toggleFilterModal(col.key)}
                           />
@@ -340,14 +392,14 @@ export function DataTable<T>({
         isOpen={isSidebarOpen}
         selectedCount={selectedRows.size}
         onClose={() => setSelectedRows(new Set())}
-        newStatus={''} // Hier sollten Sie die entsprechenden Zustände und Setter-Funktionen verwalten
-        setNewStatus={() => {}} // Beispielsweise durch zusätzliche Props oder einen Callback
-        newBetreuer={''}
-        setNewBetreuer={() => {}}
-        newKategorie={''}
-        setNewKategorie={() => {}}
-        newVerknuepfung={''}
-        setNewVerknuepfung={() => {}}
+        newStatus={filters.newStatus || ''}
+        setNewStatus={(value: string) => setFilters((prev) => ({ ...prev, newStatus: value }))}
+        newBetreuer={filters.newBetreuer || ''}
+        setNewBetreuer={(value: string) => setFilters((prev) => ({ ...prev, newBetreuer: value }))}
+        newKategorie={filters.newKategorie || ''}
+        setNewKategorie={(value: string) => setFilters((prev) => ({ ...prev, newKategorie: value }))}
+        newVerknuepfung={filters.newVerknuepfung || ''}
+        setNewVerknuepfung={(value: string) => setFilters((prev) => ({ ...prev, newVerknuepfung: value }))}
         onDelete={() => confirmBulkAction('delete')}
         onUpdate={() => confirmBulkAction('update')}
         betreuerList={betreuerList}
@@ -375,6 +427,8 @@ export function DataTable<T>({
           betreuerList={betreuerList}
           onBetreuerFilterChange={handleBetreuerFilterChange}
           onDateFilterChange={handleDateFilterChange}
+          onStatusFilterChange={handleStatusFilterChange}
+          onKategorieFilterChange={handleKategorieFilterChange} // Hinzufügen des Kategorie-Handlers
           filters={filters}
         />
       )}

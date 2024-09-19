@@ -2,12 +2,13 @@
 
 'use client';
 
-import { DataTable } from './DataTable';
+import React, { useState } from 'react';
+import DataTable from './DataTable';
 import { FaStar } from 'react-icons/fa';
 import Link from 'next/link';
-import { useState } from 'react';
-import BulkActionSidebar from './BulkActionSidebar'; // Importieren, wenn nötig
-import React from 'react';
+import BulkActionSidebar from './BulkActionSidebar';
+import { statusOptions } from '@/constants/statusOptions';
+import { kategorieOptions } from '@/constants/kategorieOptions'; // Importieren Sie die Kategorieoptionen
 
 interface User {
   id: string;
