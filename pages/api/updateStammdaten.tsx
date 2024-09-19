@@ -1,3 +1,4 @@
+//pages/api/updateStammdaten.tsx
 import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient, Standort, Unternehmensverknuepfung } from '@prisma/client';
 
