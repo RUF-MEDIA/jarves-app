@@ -1,7 +1,9 @@
+// app/api/login/route.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '@/lib/prisma';
+import { serialize } from 'cookie';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
@@ -34,9 +36,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '1h' });
 
-    res.status(200).json({ token, message: 'Login successful' });
+    // Setzen des Tokens als HTTP-Only Cookie
+    res.setHeader(
+      'Set-Cookie',
+      serialize('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/',
+        maxAge: 60 * 60, // 1 Stunde
+      })
+    );
+
+    res.status(200).json({ message: 'Login successful' });
   } catch (error) {
-    // Cast to Error oder Typüberprüfung durchführen
+    // Cast zu Error oder Typüberprüfung durchführen
     if (error instanceof Error) {
       console.error('Error logging in:', error.message);
       res.status(500).json({ message: `Internal Server Error: ${error.message}` });

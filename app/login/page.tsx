@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import Image from 'next/image';
-import Logo from '@/public/images/Logo-rec2rec.svg'; // Dein Logo importieren
+import Logo from '@/public/images/Logo-rec2rec.svg'; // Ihr Logo importieren
+import { useCookies } from 'react-cookie';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -16,12 +17,18 @@ export default function Login() {
   const [error, setError] = useState('');
   const router = useRouter();
   const [imageUrl, setImageUrl] = useState('');
+  const [cookies] = useCookies(['token']);
 
   useEffect(() => {
     // Bildschirmgröße ermitteln und die URL des Bildes dynamisch setzen
     const { innerWidth, innerHeight } = window;
     setImageUrl(`https://picsum.photos/${innerWidth}/${innerHeight}`);
-  }, []);
+
+    // Wenn der Benutzer bereits authentifiziert ist, weiterleiten
+    if (cookies.token) {
+      router.push('/dashboard');
+    }
+  }, [cookies.token, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,15 +44,14 @@ export default function Login() {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('token', data.token); // Speichert den JWT im Local Storage
+        // Der Token wird als HTTP-Only Cookie gesetzt, daher kein localStorage-Eintrag
         router.push('/dashboard'); // Weiterleiten nach erfolgreichem Login
       } else {
         const result = await response.json();
         setError(result.message);
       }
     } catch (error) {
-      setError('Something went wrong');
+      setError('Etwas ist schiefgelaufen');
     }
   };
 

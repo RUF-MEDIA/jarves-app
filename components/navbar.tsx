@@ -1,4 +1,5 @@
 // components/navbar.tsx
+'use client';
 import React from 'react';
 import Image from 'next/image';
 import Header1 from '@/components/header1';
