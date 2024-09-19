@@ -51,7 +51,7 @@ export default function DataTable<T>({ apiEndpoint, columns, defaultSelectedColu
     kategorie: [],
     newStatus: '',
     newBetreuer: '',
-    newKategorie: [], // Hier als Array initialisiert
+    newKategorie: '', // Hier als Array initialisiert
     newVerknuepfung: '',
   });
 
@@ -186,8 +186,8 @@ export default function DataTable<T>({ apiEndpoint, columns, defaultSelectedColu
       } else {
         const updates: any = {};
         if (filters.newStatus) updates.status = filters.newStatus;
-        if (filters.newKategorie.length > 0) {
-          updates.kategorie = filters.newKategorie.map((kategorie: string) => parseInt(kategorie, 10));
+        if (filters.newKategorie) {
+          updates.kategorie = parseInt(filters.newKategorie, 10);
         }
         if (filters.newBetreuer) updates.betreuerId = filters.newBetreuer;
         if (filters.newVerknuepfung) updates.unternehmensverknuepfung = filters.newVerknuepfung;
@@ -205,7 +205,7 @@ export default function DataTable<T>({ apiEndpoint, columns, defaultSelectedColu
           setFilters((prev) => ({
             ...prev,
             newStatus: '',
-            newKategorie: [],
+            newKategorie: '', // Zurücksetzen auf leeren String
             newBetreuer: '',
             newVerknuepfung: '',
           }));
@@ -349,8 +349,8 @@ export default function DataTable<T>({ apiEndpoint, columns, defaultSelectedColu
         setNewStatus={(value: string) => setFilters((prev) => ({ ...prev, newStatus: value }))}
         newBetreuer={filters.newBetreuer || ''}
         setNewBetreuer={(value: string) => setFilters((prev) => ({ ...prev, newBetreuer: value }))}
-        newKategorie={filters.newKategorie} // Hier ohne Fallback
-        setNewKategorie={(value: string[]) => setFilters((prev) => ({ ...prev, newKategorie: value }))}
+        newKategorie={filters.newKategorie || ''} // Stellen Sie sicher, dass dies ein string ist
+        setNewKategorie={(value: string) => setFilters((prev) => ({ ...prev, newKategorie: value }))}
         newVerknuepfung={filters.newVerknuepfung || ''}
         setNewVerknuepfung={(value: string) => setFilters((prev) => ({ ...prev, newVerknuepfung: value }))}
         onDelete={() => confirmBulkAction('delete')}

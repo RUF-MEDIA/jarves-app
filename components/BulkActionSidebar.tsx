@@ -18,8 +18,8 @@ interface BulkActionSidebarProps {
   setNewStatus: (value: string) => void;
   newBetreuer: string;
   setNewBetreuer: (value: string) => void;
-  newKategorie: string[];
-  setNewKategorie: (value: string[]) => void;
+  newKategorie: string; // Typ geändert zu string
+  setNewKategorie: (value: string) => void;
   newVerknuepfung: string;
   setNewVerknuepfung: (value: string) => void;
   onDelete: () => void;
@@ -43,15 +43,6 @@ const BulkActionSidebar: React.FC<BulkActionSidebarProps> = ({
   onUpdate,
   betreuerList,
 }) => {
-  // Handler für die Kategoriewahl
-  const handleKategorieChange = (kategorieValue: string) => {
-    if (newKategorie.includes(kategorieValue)) {
-      setNewKategorie(newKategorie.filter((val) => val !== kategorieValue));
-    } else {
-      setNewKategorie([...newKategorie, kategorieValue]);
-    }
-  };
-
   if (!isOpen) return null;
 
   return createPortal(
@@ -66,7 +57,7 @@ const BulkActionSidebar: React.FC<BulkActionSidebarProps> = ({
               <label htmlFor="status" className="block text-sm font-medium mb-1">
                 Status ändern:
               </label>
-              <Select onValueChange={(value) => setNewStatus(value)} value={newStatus}>
+              <Select onValueChange={setNewStatus} value={newStatus}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="-- Status auswählen --" />
                 </SelectTrigger>
@@ -82,22 +73,21 @@ const BulkActionSidebar: React.FC<BulkActionSidebarProps> = ({
 
             {/* Kategorie ändern */}
             <div>
-              <label className="block text-sm font-medium mb-1">Kategorie ändern:</label>
-              <div className="space-y-2">
-                {kategorieOptions.map((kategorie) => (
-                  <div key={kategorie.value} className="flex items-center">
-                    <Checkbox
-                      checked={newKategorie.includes(kategorie.value.toString())}
-                      onCheckedChange={() => handleKategorieChange(kategorie.value.toString())}
-                      id={`bulk-kategorie-${kategorie.value}`}
-                      className="mr-2"
-                    />
-                    <label htmlFor={`bulk-kategorie-${kategorie.value}`} className="text-sm">
+              <label htmlFor="kategorie" className="block text-sm font-medium mb-1">
+                Kategorie ändern:
+              </label>
+              <Select onValueChange={setNewKategorie} value={newKategorie}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="-- Kategorie auswählen --" />
+                </SelectTrigger>
+                <SelectContent>
+                  {kategorieOptions.map((kategorie) => (
+                    <SelectItem key={kategorie.value} value={kategorie.value.toString()}>
                       {kategorie.label}
-                    </label>
-                  </div>
-                ))}
-              </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Betreuer zuweisen */}
@@ -105,7 +95,7 @@ const BulkActionSidebar: React.FC<BulkActionSidebarProps> = ({
               <label htmlFor="betreuer" className="block text-sm font-medium mb-1">
                 Betreuer zuweisen:
               </label>
-              <Select onValueChange={(value) => setNewBetreuer(value)} value={newBetreuer}>
+              <Select onValueChange={setNewBetreuer} value={newBetreuer}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="-- Betreuer auswählen --" />
                 </SelectTrigger>
@@ -124,7 +114,7 @@ const BulkActionSidebar: React.FC<BulkActionSidebarProps> = ({
               <label htmlFor="verknuepfung" className="block text-sm font-medium mb-1">
                 Unternehmensverknüpfung zuweisen:
               </label>
-              <Select onValueChange={(value) => setNewVerknuepfung(value)} value={newVerknuepfung}>
+              <Select onValueChange={setNewVerknuepfung} value={newVerknuepfung}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="-- Verknüpfung auswählen --" />
                 </SelectTrigger>
