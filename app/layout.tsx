@@ -1,4 +1,4 @@
-'use client'; // Füge dies hinzu, um die Komponente als Client-Komponente zu deklarieren
+'use client'; // Deklariert die Komponente als Client-Komponente
 
 import './globals.css';
 import { Navbar } from '@/components/navbar';
@@ -15,22 +15,34 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null); // null = Ladezustand
   const router = useRouter();
-  const pathname = usePathname(); // Verwende usePathname, um den aktuellen Pfad abzurufen
+  const pathname = usePathname(); // Aktueller Pfad
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsLoggedIn(true);
-    } else {
-      setIsLoggedIn(false);
-      if (pathname !== '/login') {
-        // Verwende den Pfadnamen aus usePathname
-        router.push('/login');
+    const checkAuth = () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        setIsLoggedIn(true);
+      } else {
+        setIsLoggedIn(false);
+        if (pathname !== '/login') {
+          router.push('/login');
+        }
       }
-    }
-  }, [router, pathname]); // Füge pathname zu den Abhängigkeiten hinzu
+    };
+
+    checkAuth();
+  }, [router, pathname]);
+
+  if (isLoggedIn === null) {
+    // Optional: Ladeanzeige während der Authentifizierung
+    return (
+      <div className="w-screen h-screen flex items-center justify-center bg-slate-50">
+        <p className="text-gray-500">Lade...</p>
+      </div>
+    );
+  }
 
   return (
     <html lang="de">
@@ -45,8 +57,8 @@ export default function RootLayout({
             <div className="min-w-full flex items-center justify-between container mx-auto my-5 px-5 lg:px-10 ">{children}</div>
           </div>
         ) : (
-          // Falls nicht eingeloggt, fülle den Bildschirm
-          <div className="w-screen h-screen">{children}</div>
+          // Falls nicht eingeloggt, fülle den Bildschirm mit Login-Komponente oder anderen Inhalten
+          <div className="w-screen h-screen flex items-center justify-center">{children}</div>
         )}
       </body>
     </html>
