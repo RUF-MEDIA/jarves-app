@@ -1,7 +1,7 @@
 // app/kunden/page.tsx
 
 import prisma from '@/lib/prisma';
-import KundenTable from '@/components/KundenTable'; // Achten Sie auf die korrekte Groß-/Kleinschreibung
+import KundenTable from '@/components/KundenTable';
 
 export default async function KundenPage() {
   try {
