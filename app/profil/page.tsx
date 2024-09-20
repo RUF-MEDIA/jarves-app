@@ -1,3 +1,5 @@
+// app/profile/page.tsx
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -20,17 +22,10 @@ export default function ProfilePage() {
   // Holen der Benutzerinformationen beim Laden der Seite
   useEffect(() => {
     const fetchProfile = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        router.push('/login');
-        return;
-      }
-
       try {
         const response = await fetch('/api/profile', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          method: 'GET',
+          credentials: 'include', // Sorgt dafür, dass Cookies mitgesendet werden
         });
 
         if (response.ok) {
@@ -40,10 +35,12 @@ export default function ProfilePage() {
           setEmail(data.email);
           setProfilBild(data.profilBild); // Setzen des Profilbilds
         } else {
+          // Bei einem Fehler (z.B. 401 Unauthorized) zur Login-Seite weiterleiten
           router.push('/login');
         }
       } catch (error) {
         console.error('Failed to fetch profile:', error);
+        router.push('/login'); // Bei einem Fehler ebenfalls zur Login-Seite weiterleiten
       }
     };
 
@@ -55,28 +52,24 @@ export default function ProfilePage() {
     e.preventDefault();
     setMessage('');
 
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
     try {
       const response = await fetch('/api/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
+        credentials: 'include', // Sorgt dafür, dass Cookies mitgesendet werden
         body: JSON.stringify({ vorname, name, email, password }),
       });
 
       if (response.ok) {
         setMessage('Profil erfolgreich aktualisiert');
       } else {
-        setMessage('Fehler beim Aktualisieren des Profils');
+        const errorData = await response.json();
+        setMessage(errorData.message || 'Fehler beim Aktualisieren des Profils');
       }
     } catch (error) {
+      console.error('Failed to update profile:', error);
       setMessage('Etwas ist schiefgelaufen');
     }
   };

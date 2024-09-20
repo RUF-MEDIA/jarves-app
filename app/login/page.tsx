@@ -1,4 +1,5 @@
 // app/login/page.tsx
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -56,7 +57,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-cover bg-center" style={{ backgroundImage: `url(${imageUrl})` }}>
+    <div className="w-full min-h-screen flex items-center justify-center bg-cover bg-center" style={{ backgroundImage: `url(${imageUrl})` }}>
       <Card className="w-full max-w-md bg-white bg-opacity-90 shadow-lg">
         <CardHeader className="flex flex-col items-center">
           {/* Logo über dem Titel */}

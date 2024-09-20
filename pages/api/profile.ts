@@ -1,71 +1,62 @@
+// pages/api/profile.ts
+
 import type { NextApiRequest, NextApiResponse } from 'next';
-import prisma from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
+import prisma from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { authorization } = req.headers;
+  const token = req.cookies.token;
 
-  if (!authorization) {
-    return res.status(401).json({ message: 'Authorization header required' });
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' });
   }
 
-  const token = authorization.split(' ')[1];
-
   try {
-    // Token dekodieren
-    const decoded: any = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: { vorname: true, name: true, email: true, profilBild: true },
+    });
 
-    // Verwende 'userId' aus dem Token
-    const userId = decoded.userId;
-
-    if (!userId) {
-      return res.status(400).json({ message: 'Invalid token, no userId found' });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    // GET-Methode, um die Profildaten abzurufen
     if (req.method === 'GET') {
-      try {
-        const user = await prisma.user.findUnique({
-          where: { id: userId },
-        });
-
-        if (!user) {
-          return res.status(404).json({ message: 'User not found' });
-        }
-
-        // Rückgabe der Benutzerdaten inklusive `profilBild`
-        return res.status(200).json({
-          vorname: user.vorname,
-          name: user.name,
-          email: user.email,
-          profilBild: user.profilBild || null, // Profilbild-Feld zurückgeben
-        });
-      } catch (error) {
-        console.error('Error fetching user:', error);
-        return res.status(500).json({ message: 'Error fetching user' });
-      }
+      // Rückgabe der Profilinformationen
+      return res.status(200).json({
+        vorname: user.vorname,
+        name: user.name,
+        email: user.email,
+        profilBild: user.profilBild,
+      });
     } else if (req.method === 'PUT') {
-      // Update-Methode, um Profildaten zu aktualisieren
-      try {
-        const { vorname, name, email, password } = req.body;
+      // Aktualisierung der Profilinformationen
+      const { vorname, name, email, password } = req.body;
 
-        const updatedUser = await prisma.user.update({
-          where: { id: userId },
-          data: { vorname, name, email },
-        });
+      // Optional: Validierung der Eingabedaten hier durchführen
 
-        return res.status(200).json({ message: 'Profile updated successfully', user: updatedUser });
-      } catch (error) {
-        console.error('Error updating user:', error);
-        return res.status(500).json({ message: 'Error updating user' });
-      }
+      // Aktualisieren der Benutzerdaten
+      const updatedUser = await prisma.user.update({
+        where: { id: decoded.userId },
+        data: {
+          vorname,
+          name,
+          email,
+          password: password ? await bcrypt.hash(password, 10) : undefined, // Passwort nur aktualisieren, wenn es gesetzt ist
+        },
+      });
+
+      return res.status(200).json({ message: 'Profil erfolgreich aktualisiert' });
+    } else {
+      res.setHeader('Allow', ['GET', 'PUT']);
+      return res.status(405).json({ message: `Method ${req.method} Not Allowed` });
     }
-
-    return res.status(405).json({ message: 'Method Not Allowed' });
   } catch (error) {
-    console.error('Error verifying token:', error);
-    return res.status(500).json({ message: 'Internal Server Error' });
+    console.error('Error handling profile:', error);
+    return res.status(401).json({ message: 'Invalid token' });
   }
 }

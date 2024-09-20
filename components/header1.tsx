@@ -1,3 +1,7 @@
+// components/header1.tsx
+
+'use client';
+
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -8,38 +12,43 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 
-export function Navbar() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+export default function Header1() {
   const [profilBild, setProfilBild] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
-
-    if (token) {
-      // Profilbild vom Server holen
-      fetch('/api/profile', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    // Profilbild vom Server holen
+    fetch('/api/profile')
+      .then((res) => {
+        if (res.ok) {
+          return res.json();
+        }
+        throw new Error('Failed to fetch profile');
       })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data && data.profilBild) {
-            setProfilBild(data.profilBild); // Profilbild setzen
-          }
-        })
-        .catch((error) => {
-          console.error('Fehler beim Laden des Profilbilds:', error);
-        });
-    }
+      .then((data) => {
+        if (data && data.profilBild) {
+          setProfilBild(data.profilBild); // Profilbild setzen
+        }
+      })
+      .catch((error) => {
+        console.error('Fehler beim Laden des Profilbilds:', error);
+      });
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setIsLoggedIn(false);
-    router.push('/login');
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/api/logout', {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        router.push('/login');
+      } else {
+        console.error('Fehler beim Logout');
+      }
+    } catch (error) {
+      console.error('Fehler beim Logout:', error);
+    }
   };
 
   return (
@@ -69,23 +78,20 @@ export function Navbar() {
             </Avatar>
           </div>
 
-          {isLoggedIn && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center">
-                  <FontAwesomeIcon icon={faCaretDown} className="ml-2 text-slate-400" style={{ height: '16px' }} />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => router.push('/profil')}>Profil bearbeiten</DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+          {/* Dropdown-Menü */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center">
+                <FontAwesomeIcon icon={faCaretDown} className="ml-2 text-slate-400" style={{ height: '16px' }} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => router.push('/profil')}>Profil bearbeiten</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </div>
   );
 }
-
-export default Navbar;
