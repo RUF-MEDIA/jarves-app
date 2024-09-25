@@ -22,7 +22,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             id: true,
             vorname: true,
             nachname: true,
-            kategorie: true, // Hier die Kategorie auswählen
+            email: true, // E-Mail-Adresse auswählen
+            telefon: true, // Telefonnummer auswählen
           },
         },
       },
@@ -37,7 +38,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: contact.id,
       vorname: contact.vorname,
       nachname: contact.nachname,
-      kategorie: contact.kategorie, // Stelle sicher, dass die Kategorie hier korrekt gesetzt wird
+      email: contact.email, // E-Mail-Adresse hinzufügen
+      telefon: contact.telefon, // Telefonnummer hinzufügen
     }));
 
     res.status(200).json(linkedContacts);

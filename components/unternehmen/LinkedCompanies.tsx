@@ -4,9 +4,10 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { PlusCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface Company {
   id: string;
@@ -14,10 +15,12 @@ interface Company {
   unternehmensverknuepfung: string | null;
 }
 
-const LinkedCompanies = ({ currentCompanyId }: { currentCompanyId: string }) => {
+const LinkedCompanies: React.FC<{ currentCompanyId: string }> = ({ currentCompanyId }) => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [allCompanies, setAllCompanies] = useState<Company[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [companyToRemove, setCompanyToRemove] = useState<Company | null>(null);
   const [newCompanyId, setNewCompanyId] = useState('');
   const [unternehmensverknuepfung, setUnternehmensverknuepfung] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -109,6 +112,8 @@ const LinkedCompanies = ({ currentCompanyId }: { currentCompanyId: string }) => 
 
       const updatedCompanies = await fetch(`/api/linkedCompanies?currentCompanyId=${currentCompanyId}`).then((res) => res.json());
       setCompanies(updatedCompanies);
+      setIsConfirmModalOpen(false);
+      setCompanyToRemove(null);
     } catch (error) {
       console.error('Error unlinking company:', error);
     }
@@ -119,85 +124,99 @@ const LinkedCompanies = ({ currentCompanyId }: { currentCompanyId: string }) => 
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogTrigger asChild>
-          <Button className="h-full bg-gray-200 hover:bg-gray-300 text-gray-800 flex flex-col items-center justify-center transition-colors duration-200 w-12 min-h-[80px]">
-            <PlusCircle size={20} />
-            <span className="text-xs mt-1">Neu</span>
-          </Button>
-        </DialogTrigger>
+    <Card>
+      <CardContent className="p-4">
+        <div className="flex flex-wrap gap-4">
+          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="h-[80px] w-[80px] flex flex-col items-center justify-center">
+                <PlusCircle className="h-6 w-6 mb-1" />
+                <span>Neu</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Unternehmen verknüpfen</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleAddCompany} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="newCompanyId">Unternehmen auswählen</Label>
+                  <Select value={newCompanyId} onValueChange={setNewCompanyId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Wählen Sie ein Unternehmen" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allCompanies.map((company) => (
+                        <SelectItem key={company.id} value={company.id}>
+                          {company.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="unternehmensverknuepfung">Art der Verknüpfung</Label>
+                  <Select value={unternehmensverknuepfung} onValueChange={setUnternehmensverknuepfung}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Wählen Sie die Art der Verknüpfung" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Muttergesellschaft">Muttergesellschaft</SelectItem>
+                      <SelectItem value="Tochtergesellschaft">Tochtergesellschaft</SelectItem>
+                      <SelectItem value="Schwestergesellschaft">Schwestergesellschaft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button type="submit" className="w-full">
+                  Verknüpfen
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          {companies.map((company) => (
+            <Card key={company.id} className="w-[280px]">
+              <CardContent className="p-3">
+                <div className="flex justify-between items-start">
+                  <Link href={`/kunden/${company.id}`}>
+                    <h3 className="font-semibold text-sm text-primary hover:underline">{company.name}</h3>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive/90 -mt-2 -mr-2"
+                    onClick={() => {
+                      setCompanyToRemove(company);
+                      setIsConfirmModalOpen(true);
+                    }}
+                  >
+                    <XCircle className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="text-sm text-muted-foreground mt-2">{company.unternehmensverknuepfung || 'Keine Verknüpfung'}</div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </CardContent>
+
+      <Dialog open={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-sm">Unternehmen verknüpfen</DialogTitle>
+            <DialogTitle>Unternehmen entfernen</DialogTitle>
+            <DialogDescription>Möchten Sie wirklich die Verknüpfung zu {companyToRemove?.name} entfernen?</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleAddCompany} className="space-y-2">
-            <div>
-              <Label htmlFor="newCompanyId" className="text-sm">
-                Unternehmen auswählen
-              </Label>
-              <Select value={newCompanyId} onValueChange={setNewCompanyId}>
-                <SelectTrigger className="text-sm">
-                  <SelectValue placeholder="Wählen Sie ein Unternehmen" />
-                </SelectTrigger>
-                <SelectContent>
-                  {allCompanies.map((company) => (
-                    <SelectItem key={company.id} value={company.id} className="text-sm">
-                      {company.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="unternehmensverknuepfung" className="text-sm">
-                Art der Verknüpfung
-              </Label>
-              <Select value={unternehmensverknuepfung} onValueChange={setUnternehmensverknuepfung}>
-                <SelectTrigger className="text-sm">
-                  <SelectValue placeholder="Wählen Sie die Art der Verknüpfung" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Muttergesellschaft" className="text-sm">
-                    Muttergesellschaft
-                  </SelectItem>
-                  <SelectItem value="Tochtergesellschaft" className="text-sm">
-                    Tochtergesellschaft
-                  </SelectItem>
-                  <SelectItem value="Schwestergesellschaft" className="text-sm">
-                    Schwestergesellschaft
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button type="submit" className="w-full text-sm py-1">
-              Verknüpfen
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsConfirmModalOpen(false)}>
+              Abbrechen
             </Button>
-          </form>
+            <Button variant="destructive" onClick={() => companyToRemove && handleRemoveCompany(companyToRemove.id)}>
+              Entfernen
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {companies.map((company) => (
-        <div key={company.id} className="relative w-1/5">
-          <div
-            className="p-2 rounded-lg flex flex-col justify-between transition-colors duration-200 hover:bg-opacity-80 bg-gray-100 hover:bg-gray-200"
-            style={{ minHeight: '80px' }}
-          >
-            <button
-              className="absolute top-1 right-1 text-red-600 hover:text-red-800"
-              onClick={() => handleRemoveCompany(company.id)}
-              aria-label="Entfernen"
-            >
-              <XCircle size={16} />
-            </button>
-            <Link href={`/kunden/${company.id}`}>
-              <h3 className="font-semibold text-xs truncate text-blue-600 hover:underline">{company.name}</h3>
-            </Link>
-            <p className="text-xs text-gray-600 truncate mt-1">{company.unternehmensverknuepfung || 'Keine Verknüpfung'}</p>
-          </div>
-        </div>
-      ))}
-    </div>
+    </Card>
   );
 };
 

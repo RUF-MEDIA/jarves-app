@@ -1,8 +1,5 @@
-// pages/api/documents.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '@/lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -11,20 +8,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { unternehmenId } = req.query;
 
-  if (!unternehmenId) {
-    return res.status(400).json({ error: 'unternehmenId is required' });
+  if (!unternehmenId || typeof unternehmenId !== 'string') {
+    return res.status(400).json({ message: 'Ungültige unternehmenId' });
   }
 
   try {
     const documents = await prisma.dokument.findMany({
-      where: {
-        unternehmenId: unternehmenId as string,
+      where: { unternehmenId: unternehmenId },
+      include: {
+        ersteller: {
+          select: {
+            id: true,
+            vorname: true,
+            name: true,
+          },
+        },
       },
     });
 
     res.status(200).json(documents);
   } catch (error) {
-    console.error('Error fetching documents:', error);
-    res.status(500).json({ error: 'Error fetching documents' });
+    console.error('Fehler beim Abrufen der Dokumente:', error);
+    res.status(500).json({ message: 'Interner Serverfehler', error: (error as Error).message });
   }
 }

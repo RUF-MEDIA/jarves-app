@@ -3,21 +3,25 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, XCircle } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface Contact {
   id: string;
   vorname: string;
   nachname: string;
-  kategorie: string | null;
+  email: string | null;
+  telefon: string | null;
 }
 
-const LinkedContacts = ({ currentCompanyId }: { currentCompanyId: string }) => {
+const LinkedContacts: React.FC<{ currentCompanyId: string }> = ({ currentCompanyId }) => {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [allContacts, setAllContacts] = useState<Contact[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [contactToRemove, setContactToRemove] = useState<Contact | null>(null);
   const [newContactId, setNewContactId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -109,6 +113,8 @@ const LinkedContacts = ({ currentCompanyId }: { currentCompanyId: string }) => {
 
       const updatedContacts = await fetch(`/api/linkedContacts?currentCompanyId=${currentCompanyId}`).then((res) => res.json());
       setContacts(updatedContacts);
+      setIsConfirmModalOpen(false);
+      setContactToRemove(null);
     } catch (error) {
       console.error('Error unlinking contact:', error);
     }
@@ -119,61 +125,99 @@ const LinkedContacts = ({ currentCompanyId }: { currentCompanyId: string }) => {
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogTrigger asChild>
-          <Button className="h-full bg-gray-200 hover:bg-gray-300 text-gray-800 flex flex-col items-center justify-center transition-colors duration-200 w-12 min-h-[80px]">
-            <PlusCircle size={20} />
-            <span className="text-xs mt-1">Neu</span>
-          </Button>
-        </DialogTrigger>
+    <Card>
+      <CardContent className="p-4">
+        <div className="flex flex-wrap gap-4">
+          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="h-[80px] w-[80px] flex flex-col items-center justify-center">
+                <PlusCircle className="h-6 w-6 mb-1" />
+                <span>Neu</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Ansprechpartner verknüpfen</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleAddContact} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="newContactId">Ansprechpartner auswählen</Label>
+                  <Select value={newContactId} onValueChange={setNewContactId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Wählen Sie einen Ansprechpartner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allContacts.map((contact) => (
+                        <SelectItem key={contact.id} value={contact.id}>
+                          {contact.vorname} {contact.nachname}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button type="submit" className="w-full">
+                  Verknüpfen
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          {contacts.map((contact) => (
+            <Card key={contact.id} className="w-[280px]">
+              <CardContent className="p-3">
+                <div className="flex justify-between items-start">
+                  <h3 className="font-semibold text-sm text-primary">
+                    {contact.vorname} {contact.nachname}
+                  </h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive/90 -mt-2 -mr-2"
+                    onClick={() => {
+                      setContactToRemove(contact);
+                      setIsConfirmModalOpen(true);
+                    }}
+                  >
+                    <XCircle className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="text-sm text-muted-foreground mt-2">
+                  {contact.email && (
+                    <a href={`mailto:${contact.email}`} className="block hover:underline">
+                      {contact.email}
+                    </a>
+                  )}
+                  {contact.telefon && (
+                    <a href={`tel:${contact.telefon}`} className="block hover:underline">
+                      {contact.telefon}
+                    </a>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </CardContent>
+
+      <Dialog open={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-sm">Ansprechpartner verknüpfen</DialogTitle>
+            <DialogTitle>Kontakt entfernen</DialogTitle>
+            <DialogDescription>
+              Möchten Sie wirklich den Kontakt {contactToRemove?.vorname} {contactToRemove?.nachname} entfernen?
+            </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleAddContact} className="space-y-2">
-            <div>
-              <Label htmlFor="newContactId" className="text-sm">
-                Ansprechpartner auswählen
-              </Label>
-              <Select value={newContactId} onValueChange={setNewContactId}>
-                <SelectTrigger className="text-sm">
-                  <SelectValue placeholder="Wählen Sie einen Ansprechpartner" />
-                </SelectTrigger>
-                <SelectContent>
-                  {allContacts.map((contact) => (
-                    <SelectItem key={contact.id} value={contact.id} className="text-sm">
-                      {contact.vorname} {contact.nachname}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button type="submit" className="w-full text-sm py-1">
-              Verknüpfen
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsConfirmModalOpen(false)}>
+              Abbrechen
             </Button>
-          </form>
+            <Button variant="destructive" onClick={() => contactToRemove && handleRemoveContact(contactToRemove.id)}>
+              Entfernen
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {contacts.map((contact) => (
-        <div key={contact.id} className="relative w-1/5 min-w-[160px]">
-          <div className="p-2 bg-gray-100 rounded-lg flex flex-col justify-between relative min-h-[80px]">
-            <button
-              className="absolute top-1 right-1 text-red-600 hover:text-red-800"
-              onClick={() => handleRemoveContact(contact.id)}
-              aria-label="Entfernen"
-            >
-              <XCircle size={16} />
-            </button>
-            <h3 className="font-semibold text-xs text-blue-600 hover:underline">
-              {contact.vorname} {contact.nachname}
-            </h3>
-            <p className="text-xs text-gray-600 mt-1">{contact.kategorie || 'Keine Kategorie angegeben'}</p>
-          </div>
-        </div>
-      ))}
-    </div>
+    </Card>
   );
 };
 

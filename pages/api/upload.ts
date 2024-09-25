@@ -1,4 +1,3 @@
-// pages/api/upload.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '@/lib/prisma';
 import formidable from 'formidable';
@@ -24,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const form = formidable({
     uploadDir: uploadDir,
     keepExtensions: true,
-    maxFileSize: 20 * 1024 * 1024, // 10MB
+    maxFileSize: 20 * 1024 * 1024, // 20MB
   });
 
   form.parse(req, async (err: Error, fields, files) => {
@@ -47,8 +46,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const individuelleBezeichnung = Array.isArray(fields.individuelleBezeichnung)
       ? fields.individuelleBezeichnung[0]
       : fields.individuelleBezeichnung;
+    const erstellerId = Array.isArray(fields.erstellerId) ? fields.erstellerId[0] : fields.erstellerId;
 
-    if (!unternehmenId || !titel || !artKunde) {
+    if (!unternehmenId || !titel || !artKunde || !erstellerId) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -62,20 +62,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           titel: titel,
           artKunde: artKunde as 'RAHMENVERTRAG' | 'MITSCHRIFT_GESPRAECH' | 'SONSTIGE_DOKUMENTE',
           link: fileUrl,
-          typ: 'PDF', // Sie könnten dies basierend auf dem Dateityp dynamisch setzen
+          typ: 'PDF', // You could set this dynamically based on the file type
           bezeichnung: file.originalFilename || '',
           individuelleBezeichnung: individuelleBezeichnung || undefined,
+          erstellerId: erstellerId,
         },
       });
 
       console.log('Document created successfully');
-      res.status(200).json({ success: true, document });
+      return res.status(200).json({ success: true, document });
     } catch (error) {
       console.error('Error saving to database:', error);
       if (error instanceof Error) {
-        res.status(500).json({ error: 'Error saving document to database', details: error.message });
+        return res.status(500).json({ error: 'Error saving document to database', details: error.message });
       } else {
-        res.status(500).json({ error: 'Unknown error occurred' });
+        return res.status(500).json({ error: 'Unknown error occurred' });
       }
     }
   });

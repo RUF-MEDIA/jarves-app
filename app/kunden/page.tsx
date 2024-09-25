@@ -14,7 +14,7 @@ export default async function KundenPage() {
     });
 
     return (
-      <div className="bg-white min-w-full px-5 ms-5 pt-10 pb-10">
+      <div className="pt-10 pb-10">
         {/* Übergabe der Betreuer-Liste an die KundenTable-Komponente */}
         <KundenTable betreuerList={betreuerList} />
       </div>

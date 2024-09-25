@@ -22,14 +22,14 @@ const Kunde = async ({ params }: { params: { id: string } }) => {
 
     return (
       <div>
-        <div className="flex-grow bg-white px-5 ms-5 pt-5 pb-5 mb-5" style={{ flexBasis: '30%' }}>
+        <div className="flex-grow ms-5 pt-3 pb-2 mb-5" style={{ flexBasis: '30%' }}>
           <LinkedCompanies currentCompanyId={user.id} />
         </div>
-        <div className="flex-grow bg-white px-5 ms-5 pt-5 pb-5 mb-5" style={{ flexBasis: '30%' }}>
+        <div className="flex-grow ms-5 pb-3 mb-5" style={{ flexBasis: '30%' }}>
           <LinkedContacts currentCompanyId={user.id} />
         </div>
         <div className="flex gap-4">
-          <div className="flex-grow bg-white px-5 ms-5 pt-5 pb-5" style={{ flexBasis: '30%' }}>
+          <div className="flex-grow ms-5 pt-5 pb-5" style={{ flexBasis: '30%' }}>
             <Switchdocs unternehmen={user} documents={[]} />
           </div>
           <div className="bg-white px-5 ms-5 pt-5 pb-5" style={{ flexBasis: '40%' }}></div>
