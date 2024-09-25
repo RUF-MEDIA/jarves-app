@@ -179,7 +179,7 @@ const LinkedCompanies: React.FC<{ currentCompanyId: string }> = ({ currentCompan
               <CardContent className="p-3">
                 <div className="flex justify-between items-start">
                   <Link href={`/kunden/${company.id}`}>
-                    <h3 className="font-semibold text-sm text-primary hover:underline">{company.name}</h3>
+                    <h3 className="font-semibold text-sm hover:underline">{company.name}</h3>
                   </Link>
                   <Button
                     variant="ghost"
@@ -193,7 +193,7 @@ const LinkedCompanies: React.FC<{ currentCompanyId: string }> = ({ currentCompan
                     <XCircle className="h-4 w-4" />
                   </Button>
                 </div>
-                <div className="text-sm text-muted-foreground mt-2">{company.unternehmensverknuepfung || 'Keine Verknüpfung'}</div>
+                <div className="text-sm text-muted-foreground mt-0">{company.unternehmensverknuepfung || 'Keine Verknüpfung'}</div>
               </CardContent>
             </Card>
           ))}

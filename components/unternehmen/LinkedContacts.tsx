@@ -130,7 +130,7 @@ const LinkedContacts: React.FC<{ currentCompanyId: string }> = ({ currentCompany
         <div className="flex flex-wrap gap-4">
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="h-[80px] w-[80px] flex flex-col items-center justify-center">
+              <Button variant="outline" className="h-[95px] w-[80px] flex flex-col items-center justify-center">
                 <PlusCircle className="h-6 w-6 mb-1" />
                 <span>Neu</span>
               </Button>
@@ -166,7 +166,7 @@ const LinkedContacts: React.FC<{ currentCompanyId: string }> = ({ currentCompany
             <Card key={contact.id} className="w-[280px]">
               <CardContent className="p-3">
                 <div className="flex justify-between items-start">
-                  <h3 className="font-semibold text-sm text-primary">
+                  <h3 className="font-semibold text-sm ">
                     {contact.vorname} {contact.nachname}
                   </h3>
                   <Button
@@ -181,7 +181,7 @@ const LinkedContacts: React.FC<{ currentCompanyId: string }> = ({ currentCompany
                     <XCircle className="h-4 w-4" />
                   </Button>
                 </div>
-                <div className="text-sm text-muted-foreground mt-2">
+                <div className="text-sm text-muted-foreground mt-0">
                   {contact.email && (
                     <a href={`mailto:${contact.email}`} className="block hover:underline">
                       {contact.email}
