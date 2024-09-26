@@ -55,7 +55,7 @@ export default function Header1() {
     <div className="min-w-full flex items-center w-full mx-auto px-4 sm:px-6 lg:px-8 border-b border-slate-200">
       <div className="min-w-full flex items-center justify-between container mx-auto px-5 lg:px-10">
         <div className="w-1/3 flex items-center">
-          <Link href="/">
+          <Link href="/dashboard">
             <Image src={Logo} alt="Logo" className="w-40" />
           </Link>
         </div>

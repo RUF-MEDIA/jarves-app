@@ -1,6 +1,6 @@
 // app/kontaktperson/page.tsx
 import { Suspense } from 'react';
-import { ContactList } from '@/components/kontaktperson/ContactList';
+import { KontaktpersonenList } from '@/components/kontaktperson/KontaktpersonenList';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function KontaktpersonPage() {
@@ -13,7 +13,7 @@ export default function KontaktpersonPage() {
         </div>
       </div>
       <Suspense fallback={<Skeleton className="w-full h-[300px]" />}>
-        <ContactList />
+        <KontaktpersonenList />
       </Suspense>
     </div>
   );

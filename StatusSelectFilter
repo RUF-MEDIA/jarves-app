@@ -1,0 +1,38 @@
+
+const StatusSelectFilter: React.FC<{ column: any; options: string[] }> = ({ column, options }) => {
+  const [selectedValue, setSelectedValue] = useState<string | ''>('');
+
+  useEffect(() => {
+    column.setFilterValue(selectedValue || undefined);
+  }, [selectedValue, column]);
+
+  const handleReset = () => {
+    setSelectedValue('');
+    column.setFilterValue(undefined);
+  };
+
+  return (
+    <div className="space-y-2">
+      <Select
+        value={selectedValue}
+        onValueChange={(value) => setSelectedValue(value)}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Filter auswählen" />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((option) => (
+            <SelectItem key={option} value={option}>
+              {option}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {selectedValue && (
+        <Button variant="ghost" size="sm" onClick={handleReset}>
+          Filter zurücksetzen
+        </Button>
+      )}
+    </div>
+  );
+};

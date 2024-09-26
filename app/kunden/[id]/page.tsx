@@ -22,9 +22,11 @@ const Kunde = async ({ params }: { params: { id: string } }) => {
 
     return (
       <div>
+        <h2 className="ms-5 mb-1 text-base font-semibold">Verknüpfte Unternehmen</h2>
         <div className="flex-grow ms-5 pt-3 pb-2 mb-5" style={{ flexBasis: '30%' }}>
           <LinkedCompanies currentCompanyId={user.id} />
         </div>
+        <h2 className="ms-5 mb-1 text-base font-semibold">Kontaktpersonen</h2>
         <div className="flex-grow ms-5 pb-3 mb-5" style={{ flexBasis: '30%' }}>
           <LinkedContacts currentCompanyId={user.id} />
         </div>

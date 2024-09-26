@@ -54,15 +54,6 @@ const Header2 = () => {
               Sales
             </a>
           </Link>
-          <Link href="/affiliate" legacyBehavior>
-            <a
-              className={`py-3 px-2 ${
-                pathname?.startsWith('/affiliate') ? 'bg-slate-100 text-gray-900' : 'text-gray-700 hover:bg-slate-100 hover:text-gray-900'
-              } dark:text-gray-400 dark:hover:text-white dark:hover:bg-slate-700`}
-            >
-              Affiliate
-            </a>
-          </Link>
           <Link href="/stellenanzeigen" legacyBehavior>
             <a
               className={`py-3 px-2 ${

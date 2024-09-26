@@ -1,26 +1,20 @@
-// app/kunden/page.tsx
+// app/kontaktperson/page.tsx
+import { Suspense } from 'react';
+import { ContactList } from '@/components/unternehmen/UnternehmenList';
+import { Skeleton } from '@/components/ui/skeleton';
 
-import prisma from '@/lib/prisma';
-import KundenTable from '@/components/KundenTable';
-
-export default async function KundenPage() {
-  try {
-    // Liste aller Betreuer abrufen
-    const betreuerList = await prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-      },
-    });
-
-    return (
-      <div className="pt-10 pb-10">
-        {/* Übergabe der Betreuer-Liste an die KundenTable-Komponente */}
-        <KundenTable betreuerList={betreuerList} />
+export default function KontaktpersonPage() {
+  return (
+    <div className="h-full flex-1 flex-col space-y-8 p-8 md:flex">
+      <div className="flex items-center justify-between space-y-2">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Kunden</h2>
+          <p className="text-muted-foreground">Hier können Sie alle Kunden verwalten und einsehen.</p>
+        </div>
       </div>
-    );
-  } catch (error) {
-    console.error('Fehler beim Abrufen der Betreuer:', error);
-    return <div>Ein Fehler ist aufgetreten beim Laden der Daten.</div>;
-  }
+      <Suspense fallback={<Skeleton className="w-full h-[300px]" />}>
+        <ContactList />
+      </Suspense>
+    </div>
+  );
 }
