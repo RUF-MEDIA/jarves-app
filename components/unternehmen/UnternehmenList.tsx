@@ -1,3 +1,4 @@
+// components/unternehmen/UnternehmenList.tsx
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
