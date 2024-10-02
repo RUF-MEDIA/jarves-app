@@ -31,6 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     betreuerId,
     unternehmensverknuepfung,
     hauptansprechpartnerId,
+    umsatzsteuerId,
   } = req.body;
 
   try {

@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FaStar, FaEdit, FaSave } from 'react-icons/fa';
-import RichTextEditor from '@/components/RichTextEditor';
+
+// Dynamisch importieren, um SSR zu vermeiden
+const Editor = dynamic(() => import('@tinymce/tinymce-react').then((mod) => mod.Editor), { ssr: false });
 
 const statuses = ['inaktiv', 'Zielkunde', 'pending', 'aktiv', 'Rahmenvertragspartner', 'nicht_kontaktieren'];
 const standorte = ['Zentrale', 'Zweigstelle'];
@@ -26,6 +29,7 @@ const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
     jobsite: unternehmen.jobsite || '',
     linkedin: unternehmen.linkedin || '',
     xing: unternehmen.xing || '',
+    umsatzsteuerId: unternehmen.umsatzsteuerId || '', // Hinzugefügt
     status: unternehmen.status || '',
     kategorie: unternehmen.kategorie || 0,
     unternehmensverknuepfung: unternehmen.unternehmensverknuepfung || '',
@@ -85,7 +89,7 @@ const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleRichTextChange = (field: string) => (content: string) => {
+  const handleEditorChange = (field: string) => (content: string) => {
     setFormData({ ...formData, [field]: content });
   };
 
@@ -128,7 +132,10 @@ const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
   };
 
   const renderField = (name: string, label: string, type: string = 'text') => (
-    <div className="space-y-2">
+    <div
+      className="space-y-2"
+      onDoubleClick={() => setIsEditing(true)} // Doppelklick auf das Feld toggelt den Bearbeitungsmodus
+    >
       <Label htmlFor={name}>{label}</Label>
       <Input
         type={type}
@@ -141,8 +148,11 @@ const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
     </div>
   );
 
-  const renderSelect = (name: string, label: string, options: string[]) => (
-    <div className="space-y-2">
+  const renderSelectField = (name: string, label: string, options: string[]) => (
+    <div
+      className="space-y-2"
+      onDoubleClick={() => setIsEditing(true)} // Doppelklick auf das Feld toggelt den Bearbeitungsmodus
+    >
       <Label htmlFor={name}>{label}</Label>
       <Select disabled={!isEditing} onValueChange={handleSelectChange(name)} value={formData[name as keyof typeof formData] as string}>
         <SelectTrigger>
@@ -163,7 +173,11 @@ const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle>Stammdaten</CardTitle>
-        <Button onClick={handleEditSave} variant="outline">
+        <Button
+          onClick={handleEditSave}
+          variant="outline"
+          onDoubleClick={(e) => e.stopPropagation()} // Verhindert, dass der Button-Doppelklick den Bearbeitungsmodus toggelt
+        >
           {isEditing ? <FaSave className="mr-2 h-4 w-4" /> : <FaEdit className="mr-2 h-4 w-4" />}
           {isEditing ? 'Speichern' : 'Bearbeiten'}
         </Button>
@@ -186,24 +200,44 @@ const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
               {renderField('strasse', 'Straße')}
               {renderField('postleitzahl', 'Postleitzahl')}
               {renderField('stadt', 'Stadt')}
-              {renderSelect('standort', 'Standort', standorte)}
+              {renderSelectField('standort', 'Standort', standorte)}
               <div className="h-8" />
               {renderField('homepage', 'Homepage')}
               {renderField('jobsite', 'Jobpage')}
               {renderField('linkedin', 'LinkedIn')}
               {renderField('xing', 'Xing')}
+              {isEditing ? (
+                <div className="space-y-2">
+                  <Label htmlFor="umsatzsteuerId">Umsatzsteuer ID</Label>
+                  <Input type="text" id="umsatzsteuerId" name="umsatzsteuerId" value={formData.umsatzsteuerId} onChange={handleChange} />
+                </div>
+              ) : (
+                <div
+                  className="space-y-2"
+                  onDoubleClick={() => setIsEditing(true)} // Doppelklick auf den Container toggelt den Bearbeitungsmodus
+                >
+                  <Label htmlFor="umsatzsteuerId">Umsatzsteuer ID</Label>
+                  <div id="umsatzsteuerId">{formData.umsatzsteuerId}</div>
+                </div>
+              )}
             </div>
             {/* Rechte Spalte */}
             <div className="space-y-4">
-              {renderSelect('status', 'Status', statuses)}
-              <div className="space-y-2">
+              {renderSelectField('status', 'Status', statuses)}
+              <div
+                className="space-y-2"
+                onDoubleClick={() => setIsEditing(true)} // Doppelklick auf den Container toggelt den Bearbeitungsmodus
+              >
                 <Label htmlFor="kategorie">Kategorie</Label>
                 <div className="min-h-10 flex items-center">{renderStars(formData.kategorie)}</div>
               </div>
-              {renderSelect('unternehmensverknuepfung', 'Unternehmensverknüpfung', ['', ...verknuepfungsarten])}
+              {renderSelectField('unternehmensverknuepfung', 'Unternehmensverknüpfung', ['', ...verknuepfungsarten])}
               {renderField('zentraleMail', 'Zentrale Mail')}
               {renderField('zentralTelefon', 'Zentrale Telefonnummer')}
-              <div className="space-y-2">
+              <div
+                className="space-y-2"
+                onDoubleClick={() => setIsEditing(true)} // Doppelklick auf den Container toggelt den Bearbeitungsmodus
+              >
                 <Label htmlFor="hauptansprechpartner">Hauptansprechpartner</Label>
                 <Select disabled={!isEditing} onValueChange={handleSelectChange('hauptansprechpartner')} value={formData.hauptansprechpartner}>
                   <SelectTrigger>
@@ -223,7 +257,10 @@ const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
               {renderField('vermittlungsprovision', 'Vermittlungsprovision %')}
               {renderField('vermittlungsprovisionIntervall', 'Vermittlungsprovision Auszahlungsintervall')}
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
+                <div
+                  className="space-y-2"
+                  onDoubleClick={() => setIsEditing(true)} // Doppelklick auf den Container toggelt den Bearbeitungsmodus
+                >
                   <Label htmlFor="internerBetreuer">Interner Betreuer</Label>
                   <Select disabled={!isEditing} onValueChange={handleSelectChange('betreuerId')} value={formData.betreuerId}>
                     <SelectTrigger>
@@ -247,13 +284,87 @@ const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
           </div>
           {/* Bereich unter den zwei Spalten */}
           <div className="space-y-4">
-            <div className="space-y-2">
+            {/* USPs */}
+            <div
+              className="space-y-2"
+              onDoubleClick={() => setIsEditing(true)} // Doppelklick auf den Container toggelt den Bearbeitungsmodus
+            >
               <Label htmlFor="usbBeschreibung">USPs</Label>
-              <RichTextEditor content={formData.usbBeschreibung} onChange={handleRichTextChange('usbBeschreibung')} disabled={!isEditing} />
+              {isEditing ? (
+                <Editor
+                  apiKey="plcdfq5rvjodoybphuo0a3qc0o5003vld3m6w0ylsddiylr6" // Setze hier deinen TinyMCE API-Schlüssel ein
+                  value={formData.usbBeschreibung}
+                  init={{
+                    height: 200,
+                    menubar: false,
+                    plugins: [
+                      'anchor',
+                      'autolink',
+                      'charmap',
+                      'codesample',
+                      'emoticons',
+                      'image',
+                      'link',
+                      'lists',
+                      'media',
+                      'searchreplace',
+                      'table',
+                      'visualblocks',
+                      'wordcount',
+                      'fontselect',
+                      'fontsizeselect', // Hinzugefügt für Schriftgröße
+                    ],
+                    toolbar:
+                      'undo redo | formatselect | bold italic backcolor | ' +
+                      'alignleft aligncenter alignright alignjustify | ' +
+                      'bullist numlist outdent indent | removeformat | fontselect fontsizeselect | help',
+                  }}
+                  onEditorChange={(content) => handleEditorChange('usbBeschreibung')(content)}
+                />
+              ) : (
+                <div id="usbBeschreibung" className="prose" dangerouslySetInnerHTML={{ __html: formData.usbBeschreibung }}></div>
+              )}
             </div>
-            <div className="space-y-2">
+            {/* Interne Notizen */}
+            <div
+              className="space-y-2"
+              onDoubleClick={() => setIsEditing(true)} // Doppelklick auf den Container toggelt den Bearbeitungsmodus
+            >
               <Label htmlFor="interneNotizen">Sonstige Notizen zum Unternehmen</Label>
-              <RichTextEditor content={formData.interneNotizen} onChange={handleRichTextChange('interneNotizen')} disabled={!isEditing} />
+              {isEditing ? (
+                <Editor
+                  apiKey="plcdfq5rvjodoybphuo0a3qc0o5003vld3m6w0ylsddiylr6" // Setze hier deinen TinyMCE API-Schlüssel ein
+                  value={formData.interneNotizen}
+                  init={{
+                    height: 200,
+                    menubar: false,
+                    plugins: [
+                      'anchor',
+                      'autolink',
+                      'charmap',
+                      'codesample',
+                      'emoticons',
+                      'image',
+                      'link',
+                      'lists',
+                      'media',
+                      'searchreplace',
+                      'table',
+                      'visualblocks',
+                      'wordcount',
+                      'fontselect',
+                      'fontsizeselect', // Hinzugefügt für Schriftgröße
+                    ],
+                    toolbar:
+                      'undo redo | formatselect | bold italic backcolor | ' +
+                      'alignleft aligncenter alignright alignjustify | ' +
+                      'bullist numlist outdent indent | removeformat | fontselect fontsizeselect | help',
+                  }}
+                  onEditorChange={(content) => handleEditorChange('interneNotizen')(content)}
+                />
+              ) : (
+                <div id="interneNotizen" className="prose" dangerouslySetInnerHTML={{ __html: formData.interneNotizen }}></div>
+              )}
             </div>
           </div>
         </form>

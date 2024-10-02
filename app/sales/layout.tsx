@@ -2,7 +2,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Kundenliste',
+  title: 'Sales',
   description: 'p',
 };
 export default function RootLayout({

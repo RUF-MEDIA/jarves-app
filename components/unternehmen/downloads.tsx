@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { FileIcon, UploadIcon } from 'lucide-react';
+import { FileIcon, UploadIcon, XIcon } from 'lucide-react';
 
 interface Document {
   id: string;
@@ -27,12 +27,45 @@ interface DownloadsProps {
   documents: Document[];
 }
 
+const DocumentViewer: React.FC<{ document: Document | null; onClose: () => void }> = ({ document, onClose }) => {
+  if (!document) return null;
+
+  const isImage = document.link.match(/\.(jpeg|jpg|gif|png)$/i) !== null;
+  const isPDF = document.link.match(/\.pdf$/i) !== null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-4 rounded-lg w-4/5 h-4/5 flex flex-col">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">{document.titel}</h2>
+          <Button onClick={onClose} variant="ghost" size="icon">
+            <XIcon className="h-6 w-6" />
+          </Button>
+        </div>
+        <div className="flex-grow overflow-auto">
+          {isImage && <img src={document.link} alt={document.titel} className="max-w-full h-auto" />}
+          {isPDF && <iframe src={document.link} title={document.titel} className="w-full h-full" />}
+          {!isImage && !isPDF && (
+            <p>
+              Dieses Dateiformat kann nicht direkt angezeigt werden.{' '}
+              <a href={document.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                Dokument herunterladen
+              </a>
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Downloads: React.FC<DownloadsProps> = ({ unternehmen, documents }) => {
   const [currentDocuments, setCurrentDocuments] = useState<Document[]>(documents);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
 
   useEffect(() => {
     console.log('Initial documents:', documents);
@@ -83,6 +116,10 @@ const Downloads: React.FC<DownloadsProps> = ({ unternehmen, documents }) => {
     return `${ersteller.vorname} ${ersteller.name}`.trim() || 'Unbekannter Benutzer';
   };
 
+  const handleDocumentClick = (doc: Document) => {
+    setSelectedDocument(doc);
+  };
+
   return (
     <Card className="mt-8">
       <CardHeader>
@@ -118,9 +155,9 @@ const Downloads: React.FC<DownloadsProps> = ({ unternehmen, documents }) => {
                 <li key={doc.id} className="flex items-start space-x-4">
                   <FileIcon className="h-6 w-6 flex-shrink-0 text-blue-500" />
                   <div className="flex-grow">
-                    <a href={doc.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">
+                    <button onClick={() => handleDocumentClick(doc)} className="text-blue-600 hover:underline font-medium">
                       {doc.titel}
-                    </a>
+                    </button>
                     <p className="text-sm text-gray-500">{doc.artKunde}</p>
                     {doc.individuelleBezeichnung && <p className="text-sm text-gray-600">{doc.individuelleBezeichnung}</p>}
                     <p className="text-xs text-gray-400">
@@ -135,6 +172,7 @@ const Downloads: React.FC<DownloadsProps> = ({ unternehmen, documents }) => {
           )}
         </ScrollArea>
       </CardContent>
+      <DocumentViewer document={selectedDocument} onClose={() => setSelectedDocument(null)} />
     </Card>
   );
 };
