@@ -448,9 +448,7 @@ export function SalesList() {
       </div>
       <DataTablePagination table={table} />
       <div className="flex justify-between items-center">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} von {table.getFilteredRowModel().rows.length} Zeile(n) ausgewählt.
-        </div>
+        <div className="flex-1 text-sm text-muted-foreground"></div>
         <div className="space-x-2">
           <Button
             variant="outline"

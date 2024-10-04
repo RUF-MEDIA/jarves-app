@@ -52,3 +52,18 @@
 .pac-container {
   z-index: 10000; /* Oder ein Wert, der höher ist als der Ihres Dialogs */
 }
+.flex-grow.ms-5.pt-5.pb-5 {
+  flex-basis: 30%;
+}
+
+.flex-grow.ms-5.pt-5.pb-5.full-width {
+  flex-basis: 100% !important;
+}
+
+.bg-white.px-5.ms-5.pt-5.pb-5.sidebar.hidden {
+  display: none;
+}
+/* In einer globalen CSS-Datei oder Tailwind-Konfiguration */
+#meineSidebar.hidden {
+  display: none;
+}

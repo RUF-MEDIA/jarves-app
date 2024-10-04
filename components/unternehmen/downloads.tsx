@@ -27,38 +27,6 @@ interface DownloadsProps {
   documents: Document[];
 }
 
-const DocumentViewer: React.FC<{ document: Document | null; onClose: () => void }> = ({ document, onClose }) => {
-  if (!document) return null;
-
-  const isImage = document.link.match(/\.(jpeg|jpg|gif|png)$/i) !== null;
-  const isPDF = document.link.match(/\.pdf$/i) !== null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-4 rounded-lg w-4/5 h-4/5 flex flex-col">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">{document.titel}</h2>
-          <Button onClick={onClose} variant="ghost" size="icon">
-            <XIcon className="h-6 w-6" />
-          </Button>
-        </div>
-        <div className="flex-grow overflow-auto">
-          {isImage && <img src={document.link} alt={document.titel} className="max-w-full h-auto" />}
-          {isPDF && <iframe src={document.link} title={document.titel} className="w-full h-full" />}
-          {!isImage && !isPDF && (
-            <p>
-              Dieses Dateiformat kann nicht direkt angezeigt werden.{' '}
-              <a href={document.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                Dokument herunterladen
-              </a>
-            </p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const Downloads: React.FC<DownloadsProps> = ({ unternehmen, documents }) => {
   const [currentDocuments, setCurrentDocuments] = useState<Document[]>(documents);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -144,35 +112,72 @@ const Downloads: React.FC<DownloadsProps> = ({ unternehmen, documents }) => {
         <CardDescription>Vorhandene Dokumente für dieses Unternehmen</CardDescription>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[300px] w-full rounded-md border p-4">
-          {isLoading ? (
-            <p>Lade Dokumente...</p>
-          ) : error ? (
-            <p className="text-red-500">{error}</p>
-          ) : currentDocuments.length > 0 ? (
-            <ul className="space-y-4">
-              {currentDocuments.map((doc) => (
-                <li key={doc.id} className="flex items-start space-x-4">
-                  <FileIcon className="h-6 w-6 flex-shrink-0 text-blue-500" />
-                  <div className="flex-grow">
-                    <button onClick={() => handleDocumentClick(doc)} className="text-blue-600 hover:underline font-medium">
-                      {doc.titel}
-                    </button>
-                    <p className="text-sm text-gray-500">{doc.artKunde}</p>
-                    {doc.individuelleBezeichnung && <p className="text-sm text-gray-600">{doc.individuelleBezeichnung}</p>}
-                    <p className="text-xs text-gray-400">
-                      Hochgeladen von {getUploaderName(doc.ersteller)} am {new Date(doc.erstelltAm).toLocaleString()}
+        <div className="flex gap-4">
+          <div
+            className={`ms-5 pt-5 pb-5 transition-all duration-300 ${selectedDocument ? 'flex-grow' : 'w-full'}`}
+            style={{ flexBasis: selectedDocument ? '60%' : '100%' }}
+          >
+            <ScrollArea className="h-[300px] w-full rounded-md border p-4">
+              {isLoading ? (
+                <p>Lade Dokumente...</p>
+              ) : error ? (
+                <p className="text-red-500">{error}</p>
+              ) : currentDocuments.length > 0 ? (
+                <ul className="space-y-4">
+                  {currentDocuments.map((doc) => (
+                    <li key={doc.id} className="flex items-start space-x-4">
+                      <FileIcon className="h-6 w-6 flex-shrink-0 text-blue-500" />
+                      <div className="flex-grow">
+                        <button onClick={() => handleDocumentClick(doc)} className="text-blue-600 hover:underline font-medium">
+                          {doc.titel}
+                        </button>
+                        <p className="text-sm text-gray-500">{doc.artKunde}</p>
+                        {doc.individuelleBezeichnung && <p className="text-sm text-gray-600">{doc.individuelleBezeichnung}</p>}
+                        <p className="text-xs text-gray-400">
+                          Hochgeladen von {getUploaderName(doc.ersteller)} am {new Date(doc.erstelltAm).toLocaleString()}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-500">Keine Dokumente vorhanden</p>
+              )}
+            </ScrollArea>
+          </div>
+          <div
+            className={`bg-white px-5 ms-5 pt-5 pb-5 sidebar transition-all duration-300 ${selectedDocument ? '' : 'hidden'}`}
+            style={{ flexBasis: '40%' }}
+          >
+            {selectedDocument && (
+              <>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-bold">{selectedDocument.titel}</h2>
+                  <Button onClick={() => setSelectedDocument(null)} variant="ghost" size="icon">
+                    <XIcon className="h-6 w-6" />
+                  </Button>
+                </div>
+                <div className="flex-grow overflow-auto h-[300px]">
+                  {/\.(jpeg|jpg|gif|png)$/i.test(selectedDocument.link) && (
+                    <img src={selectedDocument.link} alt={selectedDocument.titel} className="max-w-full h-auto" />
+                  )}
+                  {/\.pdf$/i.test(selectedDocument.link) && (
+                    <iframe src={selectedDocument.link} title={selectedDocument.titel} className="w-full h-full" />
+                  )}
+                  {!/\.(jpeg|jpg|gif|png|pdf)$/i.test(selectedDocument.link) && (
+                    <p>
+                      Dieses Dateiformat kann nicht direkt angezeigt werden.{' '}
+                      <a href={selectedDocument.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        Dokument herunterladen
+                      </a>
                     </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-gray-500">Keine Dokumente vorhanden</p>
-          )}
-        </ScrollArea>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </CardContent>
-      <DocumentViewer document={selectedDocument} onClose={() => setSelectedDocument(null)} />
     </Card>
   );
 };
