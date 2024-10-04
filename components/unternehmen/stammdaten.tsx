@@ -8,9 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FaStar, FaEdit, FaSave } from 'react-icons/fa';
+import { IAllProps } from '@tinymce/tinymce-react';
 
-// Dynamisch importieren, um SSR zu vermeiden
-const Editor = dynamic(() => import('@tinymce/tinymce-react').then((mod) => mod.Editor), { ssr: false });
+const Editor = dynamic(() => import('@tinymce/tinymce-react').then((mod) => mod.Editor as any), {
+  ssr: false,
+  loading: () => <p>Loading editor...</p>,
+}) as React.ComponentType<IAllProps>;
 
 const statuses = ['inaktiv', 'Zielkunde', 'pending', 'aktiv', 'Rahmenvertragspartner', 'nicht_kontaktieren'];
 const standorte = ['Zentrale', 'Zweigstelle'];
@@ -292,7 +295,7 @@ const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
               <Label htmlFor="usbBeschreibung">USPs</Label>
               {isEditing ? (
                 <Editor
-                  apiKey="plcdfq5rvjodoybphuo0a3qc0o5003vld3m6w0ylsddiylr6" // Setze hier deinen TinyMCE API-Schlüssel ein
+                  apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
                   value={formData.usbBeschreibung}
                   init={{
                     height: 200,
@@ -312,7 +315,7 @@ const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
                       'visualblocks',
                       'wordcount',
                       'fontselect',
-                      'fontsizeselect', // Hinzugefügt für Schriftgröße
+                      'fontsizeselect',
                     ],
                     toolbar:
                       'undo redo | formatselect | bold italic backcolor | ' +
@@ -333,7 +336,7 @@ const Stammdaten: React.FC<{ unternehmen: any }> = ({ unternehmen }) => {
               <Label htmlFor="interneNotizen">Sonstige Notizen zum Unternehmen</Label>
               {isEditing ? (
                 <Editor
-                  apiKey="plcdfq5rvjodoybphuo0a3qc0o5003vld3m6w0ylsddiylr6" // Setze hier deinen TinyMCE API-Schlüssel ein
+                  apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY} // Verwendung der Umgebungsvariable
                   value={formData.interneNotizen}
                   init={{
                     height: 200,
