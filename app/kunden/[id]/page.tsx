@@ -33,7 +33,7 @@ const Kunde = async ({ params }: { params: { id: string } }) => {
           <div className="flex-grow ms-5 pt-5 pb-5" style={{ flexBasis: '30%' }}>
             <Switchdocs unternehmen={user} documents={[]} />
           </div>
-          <div id="meineSidebar" className="bg-white px-5 ms-5 pt-5 pb-5 sidebar" style={{ flexBasis: '40%' }}></div>
+          <div id="meineSidebar" className="bg-white px-5 ms-5 pt-5 pb-5 sidebar block" style={{ flexBasis: '40%' }}></div>
         </div>
       </div>
     );

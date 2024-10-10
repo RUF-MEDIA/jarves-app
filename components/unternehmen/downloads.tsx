@@ -86,6 +86,11 @@ const Downloads: React.FC<DownloadsProps> = ({ unternehmen, documents }) => {
 
   const handleDocumentClick = (doc: Document) => {
     setSelectedDocument(doc);
+
+    const sidebarElement = document.getElementById('meineSidebar');
+    if (sidebarElement) {
+      sidebarElement.style.display = 'none';
+    }
   };
 
   return (
@@ -111,13 +116,10 @@ const Downloads: React.FC<DownloadsProps> = ({ unternehmen, documents }) => {
         </div>
         <CardDescription>Vorhandene Dokumente für dieses Unternehmen</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="flex gap-4">
-          <div
-            className={`ms-5 pt-5 pb-5 transition-all duration-300 ${selectedDocument ? 'flex-grow' : 'w-full'}`}
-            style={{ flexBasis: selectedDocument ? '60%' : '100%' }}
-          >
-            <ScrollArea className="h-[300px] w-full rounded-md border p-4">
+      <CardContent className="h-[calc(100vh-200px)] min-h-[800px]">
+        <div className="flex gap-4 h-full">
+          <div className={`transition-all duration-300 ${selectedDocument ? 'w-1/4' : 'w-full'}`}>
+            <ScrollArea className="h-full w-full rounded-md border p-4">
               {isLoading ? (
                 <p>Lade Dokumente...</p>
               ) : error ? (
@@ -145,24 +147,36 @@ const Downloads: React.FC<DownloadsProps> = ({ unternehmen, documents }) => {
               )}
             </ScrollArea>
           </div>
-          <div
-            className={`bg-white px-5 ms-5 pt-5 pb-5 sidebar transition-all duration-300 ${selectedDocument ? '' : 'hidden'}`}
-            style={{ flexBasis: '40%' }}
-          >
+          <div className={`bg-white transition-all duration-300 ${selectedDocument ? 'w-3/4' : 'hidden'}`}>
             {selectedDocument && (
-              <>
-                <div className="flex justify-between items-center mb-4">
+              <div className="h-full flex flex-col">
+                <div className="flex justify-between items-center mb-4 p-4">
                   <h2 className="text-xl font-bold">{selectedDocument.titel}</h2>
-                  <Button onClick={() => setSelectedDocument(null)} variant="ghost" size="icon">
+                  <Button
+                    onClick={() => {
+                      setSelectedDocument(null);
+                      const sidebarElement = document.getElementById('meineSidebar');
+                      if (sidebarElement) {
+                        sidebarElement.style.display = 'block';
+                      }
+                    }}
+                    variant="ghost"
+                    size="icon"
+                  >
                     <XIcon className="h-6 w-6" />
                   </Button>
                 </div>
-                <div className="flex-grow overflow-auto h-[300px]">
+                <div className="flex-grow overflow-auto p-4">
                   {/\.(jpeg|jpg|gif|png)$/i.test(selectedDocument.link) && (
-                    <img src={selectedDocument.link} alt={selectedDocument.titel} className="max-w-full h-auto" />
+                    <img
+                      src={selectedDocument.link}
+                      alt={selectedDocument.titel}
+                      className="max-w-full h-auto object-contain"
+                      style={{ maxHeight: '100%', width: '100%' }}
+                    />
                   )}
                   {/\.pdf$/i.test(selectedDocument.link) && (
-                    <iframe src={selectedDocument.link} title={selectedDocument.titel} className="w-full h-full" />
+                    <iframe src={selectedDocument.link} title={selectedDocument.titel} className="w-full h-full min-h-[800px]" />
                   )}
                   {!/\.(jpeg|jpg|gif|png|pdf)$/i.test(selectedDocument.link) && (
                     <p>
@@ -173,7 +187,7 @@ const Downloads: React.FC<DownloadsProps> = ({ unternehmen, documents }) => {
                     </p>
                   )}
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
