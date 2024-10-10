@@ -4,7 +4,6 @@ import prisma from '@/lib/prisma';
 import Switchdocs from '@/components/unternehmen/switchdocs';
 import LinkedCompanies from '@/components/unternehmen/LinkedCompanies';
 import LinkedContacts from '@/components/unternehmen/LinkedContacts';
-import Stammdaten from '@/components/unternehmen/stammdaten';
 
 const Kunde = async ({ params }: { params: { id: string } }) => {
   console.log('Fetching user with ID:', params.id);
@@ -30,7 +29,7 @@ const Kunde = async ({ params }: { params: { id: string } }) => {
         <div className="flex-grow ms-5 pb-3 mb-5" style={{ flexBasis: '30%' }}>
           <LinkedContacts currentCompanyId={user.id} />
         </div>
-        <div className="flex gap-4">
+        <div className="flex gap-4 mb-10 pb-10">
           <div className="flex-grow ms-5 pt-5 pb-5" style={{ flexBasis: '30%' }}>
             <Switchdocs unternehmen={user} documents={[]} />
           </div>
