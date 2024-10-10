@@ -12,6 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: true,
         vorname: true,
         nachname: true,
+        positionJobtitel: true,
       },
     });
 

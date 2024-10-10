@@ -1,4 +1,4 @@
-//pages/api/linkedContacts.ts
+// pages/api/linkedContacts.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '@/lib/prisma';
 
@@ -25,6 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             nachname: true,
             email: true, // E-Mail-Adresse auswählen
             telefon: true, // Telefonnummer auswählen
+            positionJobtitel: true, // Position/Jobtitel auswählen
           },
         },
       },
@@ -41,6 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       nachname: contact.nachname,
       email: contact.email, // E-Mail-Adresse hinzufügen
       telefon: contact.telefon, // Telefonnummer hinzufügen
+      positionJobtitel: contact.positionJobtitel, // Position/Jobtitel hinzufügen
     }));
 
     res.status(200).json(linkedContacts);

@@ -1,7 +1,7 @@
-// components/unternehmen/UnternehmenList.tsx
+// ContactList.tsx
 'use client';
-
 import React, { useState, useEffect, useMemo } from 'react';
+import { format } from 'date-fns';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -13,9 +13,6 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  Row,
-  HeaderContext,
-  CellContext,
 } from '@tanstack/react-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -29,20 +26,23 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DataTablePagination } from '@/components/ui/data-table-pagination';
-import { ChevronDown, ArrowUpDown, EyeOff, Star, Filter } from 'lucide-react';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { DateRange } from 'react-day-picker';
-import { format } from 'date-fns';
-import { de } from 'date-fns/locale';
-import { Slider } from '@/components/ui/slider';
+import { ChevronDown, ArrowUpDown, Star } from 'lucide-react';
 import { Label } from '@/components/ui/label';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import BulkActionSidebar from '../BulkActionSidebar';
 import Link from 'next/link';
+import { LetterFilter } from '../list/letter-filter';
+import { ColumnSelector } from '../list/column-selector';
+import { GlobalSearch } from '../list/global-search';
+import DateRangeFilter from '../list/DateRangeFilter';
+import NumberRangeFilter from '../list/NumberRangeFilter';
+
+interface DateRange {
+  from: Date | null;
+  to: Date | null;
+}
 
 interface Unternehmen {
   id: string;
@@ -119,98 +119,8 @@ const StarRating: React.FC<{ rating: number | null }> = ({ rating }) => {
   );
 };
 
-const DateRangeFilter: React.FC<{ column: any }> = ({ column }) => {
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: undefined,
-    to: undefined,
-  });
-
-  useEffect(() => {
-    column.setFilterValue(date);
-  }, [date, column]);
-
-  const resetFilter = () => {
-    setDate({ from: undefined, to: undefined });
-    column.setFilterValue(undefined);
-  };
-
-  return (
-    <div className="flex flex-col space-y-2 p-2">
-      <div className="flex flex-col space-y-2">
-        <Calendar
-          initialFocus
-          mode="range"
-          defaultMonth={date?.from}
-          selected={date}
-          onSelect={setDate}
-          numberOfMonths={2}
-          locale={de}
-          className="w-full max-w-[250px]"
-          classNames={{
-            months: 'flex flex-col space-y-2',
-            month: 'space-y-2',
-            caption: 'flex justify-center pt-1 relative items-center text-xs',
-            caption_label: 'text-xs font-medium',
-            nav: 'space-x-1 flex items-center',
-            nav_button: 'h-6 w-6 bg-transparent p-0 opacity-50 hover:opacity-100',
-            nav_button_previous: 'absolute left-1',
-            nav_button_next: 'absolute right-1',
-            table: 'w-full border-collapse space-y-0',
-            head_row: 'flex',
-            head_cell: 'text-muted-foreground rounded-md w-6 font-normal text-[0.6rem]',
-            row: 'flex w-full mt-1',
-            cell: 'relative p-0 text-center text-xs focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent',
-            day: 'h-6 w-6 p-0 font-normal aria-selected:opacity-100',
-            day_range_end: 'day-range-end',
-            day_selected:
-              'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground',
-            day_today: 'bg-accent text-accent-foreground',
-            day_outside: 'text-muted-foreground opacity-50',
-            day_disabled: 'text-muted-foreground opacity-50',
-            day_range_middle: 'aria-selected:bg-accent aria-selected:text-accent-foreground',
-            day_hidden: 'invisible',
-          }}
-        />
-      </div>
-      {(date?.from || date?.to) && (
-        <div className="flex flex-col space-y-2">
-          <div className="text-xs">
-            {date.from && `Von: ${format(date.from, 'dd.MM.yyyy')}`}
-            {date.to && ` - Bis: ${format(date.to, 'dd.MM.yyyy')}`}
-          </div>
-          <Button variant="ghost" size="sm" onClick={resetFilter} className="text-xs py-1 h-7">
-            Filter zurücksetzen
-          </Button>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const NumberRangeFilter: React.FC<{ column: any }> = ({ column }) => {
-  const [range, setRange] = useState<[number, number]>([0, 100]);
-
-  useEffect(() => {
-    column.setFilterValue(range);
-  }, [range, column]);
-
-  const handleRangeChange = (newValue: number[]) => {
-    setRange(newValue as [number, number]);
-  };
-
-  return (
-    <div className="flex flex-col space-y-2 p-2">
-      <Slider min={0} max={100} step={1} value={range} onValueChange={handleRangeChange} />
-      <div className="flex justify-between">
-        <span>{range[0]}</span>
-        <span>{range[1]}</span>
-      </div>
-    </div>
-  );
-};
-
 const StatusSelectFilter: React.FC<{ column: any; options: string[] }> = ({ column, options }) => {
-  const [selectedValue, setSelectedValue] = useState<string | ''>('');
+  const [selectedValue, setSelectedValue] = useState<string>('');
 
   useEffect(() => {
     column.setFilterValue(selectedValue || undefined);
@@ -281,7 +191,7 @@ const createColumns = (data: Unternehmen[]): ColumnDef<Unternehmen>[] => {
   return Array.from(allFields).map(
     (key): ColumnDef<Unternehmen> => ({
       accessorKey: key,
-      header: ({ column }: HeaderContext<Unternehmen, unknown>) => {
+      header: ({ column }) => {
         const isNameColumn = key === 'name';
 
         return (
@@ -295,23 +205,25 @@ const createColumns = (data: Unternehmen[]): ColumnDef<Unternehmen>[] => {
                   aria-label={`${columnLabels[key] || key} Optionen`}
                 >
                   <span>{columnLabels[key] || key.charAt(0).toUpperCase() + key.slice(1)}</span>
-                  <ChevronDown className="ml-2 h-4 w-4" />
+                  {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-80 p-4">
                 <div className="text-base font-semibold mb-2">Optionen für {columnLabels[key] || key}</div>
                 <div className="border-b my-2"></div>
-                <div className="mb-4">
-                  <div className="font-medium">Sortieren</div>
-                  <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
-                    <ArrowUpDown className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
-                    Aufsteigend
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
-                    <ArrowUpDown className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
-                    Absteigend
-                  </DropdownMenuItem>
-                </div>
+                {column.getCanSort() && (
+                  <div className="mb-4">
+                    <div className="font-medium">Sortieren</div>
+                    <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
+                      <ArrowUpDown className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
+                      Aufsteigend
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
+                      <ArrowUpDown className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
+                      Absteigend
+                    </DropdownMenuItem>
+                  </div>
+                )}
                 <div className="border-b my-2"></div>
                 <div>
                   <div className="font-medium mb-2">Filter</div>
@@ -320,7 +232,7 @@ const createColumns = (data: Unternehmen[]): ColumnDef<Unternehmen>[] => {
                   ) : key === 'autogeneratedNr' ? (
                     <NumberRangeFilter column={column} />
                   ) : key === 'status' ? (
-                    <StatusSelectFilter column={column} options={['Aktiv', 'Inaktiv', 'Interessent']} />
+                    <StatusSelectFilter column={column} options={['aktiv', 'inaktiv', 'interessent', 'Zielkunde']} />
                   ) : key === 'kategorie' ? (
                     <StarRatingFilter column={column} />
                   ) : isNameColumn ? (
@@ -340,7 +252,7 @@ const createColumns = (data: Unternehmen[]): ColumnDef<Unternehmen>[] => {
           </div>
         );
       },
-      cell: ({ row }: CellContext<Unternehmen, unknown>) => {
+      cell: ({ row }) => {
         const value = row.getValue(key);
         if (key === 'name') {
           return (
@@ -390,8 +302,29 @@ const createColumns = (data: Unternehmen[]): ColumnDef<Unternehmen>[] => {
         }
         return <div className="w-[200px]">{value?.toString() || '-'}</div>;
       },
-      sortingFn: key === 'autogeneratedNr' ? 'basic' : undefined,
-      filterFn: (row: Row<Unternehmen>, id: string, filterValue: any) => {
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = rowA.getValue(columnId);
+        const b = rowB.getValue(columnId);
+
+        if (a === null || a === undefined) return 1;
+        if (b === null || b === undefined) return -1;
+        if (a === b) return 0;
+
+        if (typeof a === 'number' && typeof b === 'number') {
+          return a - b;
+        }
+        if (typeof a === 'string' && typeof b === 'string') {
+          return a.localeCompare(b);
+        }
+        if (key === 'betreuer') {
+          return ((a as Unternehmen['betreuer'])?.name || '').localeCompare((b as Unternehmen['betreuer'])?.name || '');
+        }
+        if (key === 'erstelltAm' || key === 'letzteAenderungAm') {
+          return new Date(a as string).getTime() - new Date(b as string).getTime();
+        }
+        return 0;
+      },
+      filterFn: (row, id, filterValue) => {
         if (key === 'autogeneratedNr') {
           const value = row.getValue(id) as number;
           const [min, max] = filterValue as [number, number];
@@ -399,7 +332,13 @@ const createColumns = (data: Unternehmen[]): ColumnDef<Unternehmen>[] => {
         }
         if (key === 'kategorie') {
           const rating = row.getValue(id) as number | null;
+          if (filterValue === null) return true;
+          if (filterValue === 0) return rating === null || rating === 0;
           return rating !== null && rating >= filterValue;
+        }
+        if (key === 'status') {
+          const status = row.getValue(id) as string;
+          return filterValue === undefined || status === filterValue;
         }
         if (key === 'erstelltAm' || key === 'letzteAenderungAm') {
           const date = row.getValue(id) as string;
@@ -445,6 +384,7 @@ export function ContactList() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Initiales Laden der Daten
   useEffect(() => {
     const fetchUnternehmen = async () => {
       setIsLoading(true);
@@ -466,6 +406,7 @@ export function ContactList() {
     fetchUnternehmen();
   }, []);
 
+  // Laden der Betreuerliste
   useEffect(() => {
     const fetchBetreuerList = async () => {
       try {
@@ -482,6 +423,7 @@ export function ContactList() {
     fetchBetreuerList();
   }, []);
 
+  // Definition der Spalten einschließlich der Auswahl-Spalte
   const columns = useMemo(() => {
     const allColumns = createColumns(data);
     const selectColumn: ColumnDef<Unternehmen> = {
@@ -494,7 +436,7 @@ export function ContactList() {
         />
       ),
       cell: ({ row }) => (
-        <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Zeile auswählen" />
+        <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label={`Zeile ${row.id} auswählen`} />
       ),
       enableSorting: false,
       enableHiding: false,
@@ -502,60 +444,68 @@ export function ContactList() {
     return [selectColumn, ...allColumns];
   }, [data]);
 
+  // Laden der Spaltenansicht aus dem localStorage
   useEffect(() => {
-    const initialVisibility: VisibilityState = {};
-    columns.forEach((column) => {
-      if ('accessorKey' in column && typeof column.accessorKey === 'string') {
-        initialVisibility[column.accessorKey] = standardColumns.includes(column.accessorKey as keyof Unternehmen);
-      }
-    });
-    setColumnVisibility(initialVisibility);
+    const savedColumnVisibility = localStorage.getItem('columnVisibility_unternehmen-list');
+    if (savedColumnVisibility) {
+      const parsedVisibility = JSON.parse(savedColumnVisibility);
+      setColumnVisibility(parsedVisibility);
+    } else {
+      const initialVisibility: VisibilityState = {};
+      columns.forEach((column) => {
+        if ('accessorKey' in column && typeof column.accessorKey === 'string') {
+          initialVisibility[column.accessorKey] = standardColumns.includes(column.accessorKey as keyof Unternehmen);
+        }
+      });
+      setColumnVisibility(initialVisibility);
+      localStorage.setItem('columnVisibility_unternehmen-list', JSON.stringify(initialVisibility));
+    }
   }, [columns]);
 
+  // Ermitteln der verfügbaren Buchstaben für den Filter
   const availableLetters = useMemo(() => {
     const letters = new Set(data.map((unternehmen) => unternehmen.name?.[0]?.toUpperCase()).filter(Boolean));
     return Array.from(letters).sort();
   }, [data]);
 
+  // Anwenden des Buchstabenfilters
   const filteredData = useMemo(() => {
     if (filterLetter === 'ALL') return data;
     return data.filter((unternehmen) => unternehmen.name?.toUpperCase().startsWith(filterLetter));
   }, [data, filterLetter]);
 
+  // Setup der Tabelle
   const table = useReactTable({
-    data: filteredData,
+    data: filteredData, // Verwenden von gefilterten Daten
     columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
     },
-    getRowId: (row) => row.id, // Diese Zeile fügt die richtige Zeilen-ID hinzu
-    filterFns: {
-      custom: (row, columnId, filterValue) => {
-        const column = columns.find((col) => 'accessorKey' in col && col.accessorKey === columnId);
-        if (column && 'filterFn' in column) {
-          return (column.filterFn as any)(row, columnId, filterValue);
-        }
-        return true;
-      },
+    enableRowSelection: true,
+    onRowSelectionChange: setRowSelection,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: (updatedVisibility) => {
+      setColumnVisibility(updatedVisibility);
+      localStorage.setItem('columnVisibility_unternehmen-list', JSON.stringify(updatedVisibility));
     },
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getRowId: (row) => row.id,
   });
 
+  // Handler für den Buchstabenfilter
   const handleFilterChange = (letter: string) => {
     setFilterLetter(letter);
     table.resetPageIndex();
   };
 
+  // Handler für Massenaktualisierung
   const handleBulkUpdate = async () => {
     const selectedIds = Object.keys(rowSelection);
     if (selectedIds.length === 0) return;
@@ -592,6 +542,7 @@ export function ContactList() {
     }
   };
 
+  // Handler für Massenlöschung
   const handleBulkDelete = async () => {
     const selectedIds = Object.keys(rowSelection);
     if (selectedIds.length === 0) return;
@@ -627,44 +578,18 @@ export function ContactList() {
 
   return (
     <div className="space-y-4">
+      {/* Filter- und Suchleiste */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2 overflow-x-auto">
-          <Button variant={filterLetter === 'ALL' ? 'default' : 'outline'} onClick={() => handleFilterChange('ALL')}>
-            ALLE
-          </Button>
-          {availableLetters.map((letter) => (
-            <Button key={letter} variant={filterLetter === letter ? 'default' : 'outline'} onClick={() => handleFilterChange(letter)}>
-              {letter}
-            </Button>
-          ))}
+          <LetterFilter availableLetters={availableLetters} currentFilter={filterLetter} onFilterChange={handleFilterChange} />
         </div>
         <div className="flex items-center space-x-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto">
-                Spalten <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {table
-                .getAllColumns()
-                .filter((column) => column.id !== 'select' && typeof column.accessorFn !== 'undefined')
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                    >
-                      {columnLabels[column.id] || column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <GlobalSearch table={table} />
+          <ColumnSelector table={table} columnLabels={columnLabels} listId="unternehmen-list" />
         </div>
       </div>
+
+      {/* Tabelle */}
       <div className="rounded-md border bg-white">
         <ScrollArea className="w-full overflow-auto" style={{ maxWidth: '100%' }}>
           <Table style={{ minWidth: '1000px' }}>
@@ -700,12 +625,18 @@ export function ContactList() {
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
       </div>
+
+      {/* Paginierung */}
       <DataTablePagination table={table} />
+
+      {/* Massenbearbeitungs-Button */}
       <div className="flex justify-end">
         <Button variant="outline" onClick={() => setIsBulkActionSidebarOpen(true)} disabled={Object.keys(rowSelection).length === 0}>
           Massenbearbeitung
         </Button>
       </div>
+
+      {/* Bulk Action Sidebar */}
       <BulkActionSidebar
         isOpen={isBulkActionSidebarOpen}
         selectedCount={Object.keys(rowSelection).length}

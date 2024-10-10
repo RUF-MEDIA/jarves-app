@@ -14,9 +14,10 @@ interface Contact {
   nachname: string;
   email: string | null;
   telefon: string | null;
+  positionJobtitel: string | null;
 }
 
-const LinkedContacts: React.FC<{ currentCompanyId: string }> = ({ currentCompanyId }) => {
+export default function LinkedContacts({ currentCompanyId }: { currentCompanyId: string }) {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [allContacts, setAllContacts] = useState<Contact[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -24,18 +25,26 @@ const LinkedContacts: React.FC<{ currentCompanyId: string }> = ({ currentCompany
   const [contactToRemove, setContactToRemove] = useState<Contact | null>(null);
   const [newContactId, setNewContactId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchLinkedContacts = async () => {
       try {
+        console.log('Fetching linked contacts for company:', currentCompanyId);
         const response = await fetch(`/api/linkedContacts?currentCompanyId=${currentCompanyId}`);
         if (!response.ok) {
           throw new Error('Failed to fetch linked contacts');
         }
         const data = await response.json();
+        console.log('Fetched linked contacts:', data);
+        // Debug: Log each contact's positionJobtitel
+        data.forEach((contact: Contact) => {
+          console.log(`Contact ${contact.id} positionJobtitel:`, contact.positionJobtitel);
+        });
         setContacts(data);
       } catch (error) {
         console.error('Error fetching linked contacts:', error);
+        setError('Failed to load contacts. Please try again later.');
       } finally {
         setIsLoading(false);
       }
@@ -47,14 +56,17 @@ const LinkedContacts: React.FC<{ currentCompanyId: string }> = ({ currentCompany
   useEffect(() => {
     const fetchAllContacts = async () => {
       try {
+        console.log('Fetching all contacts');
         const response = await fetch('/api/allContacts');
         if (!response.ok) {
           throw new Error('Failed to fetch all contacts');
         }
         const data = await response.json();
+        console.log('Fetched all contacts:', data);
         setAllContacts(data);
       } catch (error) {
         console.error('Error fetching all contacts:', error);
+        setError('Failed to load all contacts. Please try again later.');
       }
     };
 
@@ -69,6 +81,7 @@ const LinkedContacts: React.FC<{ currentCompanyId: string }> = ({ currentCompany
     }
 
     try {
+      console.log('Linking contact:', newContactId, 'to company:', currentCompanyId);
       const response = await fetch('/api/linkContact', {
         method: 'POST',
         headers: {
@@ -85,17 +98,20 @@ const LinkedContacts: React.FC<{ currentCompanyId: string }> = ({ currentCompany
       }
 
       const updatedContacts = await fetch(`/api/linkedContacts?currentCompanyId=${currentCompanyId}`).then((res) => res.json());
+      console.log('Updated contacts after linking:', updatedContacts);
       setContacts(updatedContacts);
 
       setIsModalOpen(false);
       setNewContactId('');
     } catch (error) {
       console.error('Error linking contact:', error);
+      setError('Failed to link contact. Please try again.');
     }
   };
 
   const handleRemoveContact = async (contactId: string) => {
     try {
+      console.log('Unlinking contact:', contactId, 'from company:', currentCompanyId);
       const response = await fetch('/api/unlinkContact', {
         method: 'POST',
         headers: {
@@ -112,16 +128,22 @@ const LinkedContacts: React.FC<{ currentCompanyId: string }> = ({ currentCompany
       }
 
       const updatedContacts = await fetch(`/api/linkedContacts?currentCompanyId=${currentCompanyId}`).then((res) => res.json());
+      console.log('Updated contacts after unlinking:', updatedContacts);
       setContacts(updatedContacts);
       setIsConfirmModalOpen(false);
       setContactToRemove(null);
     } catch (error) {
       console.error('Error unlinking contact:', error);
+      setError('Failed to remove contact. Please try again.');
     }
   };
 
   if (isLoading) {
     return <div>Lade Ansprechpartner...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500">{error}</div>;
   }
 
   return (
@@ -162,40 +184,53 @@ const LinkedContacts: React.FC<{ currentCompanyId: string }> = ({ currentCompany
             </DialogContent>
           </Dialog>
 
-          {contacts.map((contact) => (
-            <Card key={contact.id} className="w-[280px]">
-              <CardContent className="p-3">
-                <div className="flex justify-between items-start">
-                  <h3 className="font-semibold text-sm ">
-                    {contact.vorname} {contact.nachname}
-                  </h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:text-destructive/90 -mt-2 -mr-2"
-                    onClick={() => {
-                      setContactToRemove(contact);
-                      setIsConfirmModalOpen(true);
-                    }}
-                  >
-                    <XCircle className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="text-sm text-muted-foreground mt-0">
-                  {contact.email && (
-                    <a href={`mailto:${contact.email}`} className="block hover:underline">
-                      {contact.email}
-                    </a>
-                  )}
-                  {contact.telefon && (
-                    <a href={`tel:${contact.telefon}`} className="block hover:underline">
-                      {contact.telefon}
-                    </a>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {contacts.length === 0 ? (
+            <div className="text-muted-foreground">Keine verknüpften Ansprechpartner gefunden.</div>
+          ) : (
+            contacts.map((contact) => (
+              <Card key={contact.id} className="w-[280px]">
+                <CardContent className="p-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold text-sm">
+                        {contact.vorname} {contact.nachname}
+                      </h3>
+                      {/* Debug: Display raw positionJobtitel value */}
+
+                      {contact.positionJobtitel ? (
+                        <p className="text-sm text-muted-foreground">Position/Jobtitel: {contact.positionJobtitel}</p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">Position/Jobtitel: Nicht verfügbar</p>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive/90 -mt-2 -mr-2"
+                      onClick={() => {
+                        setContactToRemove(contact);
+                        setIsConfirmModalOpen(true);
+                      }}
+                    >
+                      <XCircle className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="text-sm text-muted-foreground mt-2">
+                    {contact.email && (
+                      <a href={`mailto:${contact.email}`} className="block hover:underline">
+                        {contact.email}
+                      </a>
+                    )}
+                    {contact.telefon && (
+                      <a href={`tel:${contact.telefon}`} className="block hover:underline">
+                        {contact.telefon}
+                      </a>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
       </CardContent>
 
@@ -219,6 +254,4 @@ const LinkedContacts: React.FC<{ currentCompanyId: string }> = ({ currentCompany
       </Dialog>
     </Card>
   );
-};
-
-export default LinkedContacts;
+}
