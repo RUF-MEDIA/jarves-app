@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, XCircle } from 'lucide-react';
+import { PlusCircle, XCircle, Search } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 interface Contact {
   id: string;
@@ -20,27 +20,20 @@ interface Contact {
 export default function LinkedContacts({ currentCompanyId }: { currentCompanyId: string }) {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [allContacts, setAllContacts] = useState<Contact[]>([]);
+  const [filteredContacts, setFilteredContacts] = useState<Contact[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [contactToRemove, setContactToRemove] = useState<Contact | null>(null);
-  const [newContactId, setNewContactId] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchLinkedContacts = async () => {
       try {
-        console.log('Fetching linked contacts for company:', currentCompanyId);
         const response = await fetch(`/api/linkedContacts?currentCompanyId=${currentCompanyId}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch linked contacts');
-        }
+        if (!response.ok) throw new Error('Failed to fetch linked contacts');
         const data = await response.json();
-        console.log('Fetched linked contacts:', data);
-        // Debug: Log each contact's positionJobtitel
-        data.forEach((contact: Contact) => {
-          console.log(`Contact ${contact.id} positionJobtitel:`, contact.positionJobtitel);
-        });
         setContacts(data);
       } catch (error) {
         console.error('Error fetching linked contacts:', error);
@@ -50,59 +43,42 @@ export default function LinkedContacts({ currentCompanyId }: { currentCompanyId:
       }
     };
 
-    fetchLinkedContacts();
-  }, [currentCompanyId]);
-
-  useEffect(() => {
     const fetchAllContacts = async () => {
       try {
-        console.log('Fetching all contacts');
         const response = await fetch('/api/allContacts');
-        if (!response.ok) {
-          throw new Error('Failed to fetch all contacts');
-        }
+        if (!response.ok) throw new Error('Failed to fetch all contacts');
         const data = await response.json();
-        console.log('Fetched all contacts:', data);
         setAllContacts(data);
+        setFilteredContacts(data);
       } catch (error) {
         console.error('Error fetching all contacts:', error);
         setError('Failed to load all contacts. Please try again later.');
       }
     };
 
+    fetchLinkedContacts();
     fetchAllContacts();
-  }, []);
+  }, [currentCompanyId]);
 
-  const handleAddContact = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newContactId) {
-      console.error('Bitte füllen Sie alle Pflichtfelder aus');
-      return;
-    }
+  useEffect(() => {
+    const filtered = allContacts.filter((contact) => `${contact.vorname} ${contact.nachname}`.toLowerCase().includes(searchTerm.toLowerCase()));
+    setFilteredContacts(filtered);
+  }, [searchTerm, allContacts]);
 
+  const handleAddContact = async (contactId: string) => {
     try {
-      console.log('Linking contact:', newContactId, 'to company:', currentCompanyId);
       const response = await fetch('/api/linkContact', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          currentCompanyId,
-          selectedContactId: newContactId,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentCompanyId, selectedContactId: contactId }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to link contact');
-      }
+      if (!response.ok) throw new Error('Failed to link contact');
 
       const updatedContacts = await fetch(`/api/linkedContacts?currentCompanyId=${currentCompanyId}`).then((res) => res.json());
-      console.log('Updated contacts after linking:', updatedContacts);
       setContacts(updatedContacts);
-
       setIsModalOpen(false);
-      setNewContactId('');
+      setSearchTerm('');
     } catch (error) {
       console.error('Error linking contact:', error);
       setError('Failed to link contact. Please try again.');
@@ -111,24 +87,15 @@ export default function LinkedContacts({ currentCompanyId }: { currentCompanyId:
 
   const handleRemoveContact = async (contactId: string) => {
     try {
-      console.log('Unlinking contact:', contactId, 'from company:', currentCompanyId);
       const response = await fetch('/api/unlinkContact', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          currentCompanyId,
-          contactId,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentCompanyId, contactId }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to unlink contact');
-      }
+      if (!response.ok) throw new Error('Failed to unlink contact');
 
       const updatedContacts = await fetch(`/api/linkedContacts?currentCompanyId=${currentCompanyId}`).then((res) => res.json());
-      console.log('Updated contacts after unlinking:', updatedContacts);
       setContacts(updatedContacts);
       setIsConfirmModalOpen(false);
       setContactToRemove(null);
@@ -138,13 +105,8 @@ export default function LinkedContacts({ currentCompanyId }: { currentCompanyId:
     }
   };
 
-  if (isLoading) {
-    return <div>Lade Ansprechpartner...</div>;
-  }
-
-  if (error) {
-    return <div className="text-red-500">{error}</div>;
-  }
+  if (isLoading) return <div>Lade Ansprechpartner...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <Card>
@@ -157,30 +119,33 @@ export default function LinkedContacts({ currentCompanyId }: { currentCompanyId:
                 <span>Neu</span>
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
                 <DialogTitle>Ansprechpartner verknüpfen</DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleAddContact} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="newContactId">Ansprechpartner auswählen</Label>
-                  <Select value={newContactId} onValueChange={setNewContactId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Wählen Sie einen Ansprechpartner" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {allContacts.map((contact) => (
-                        <SelectItem key={contact.id} value={contact.id}>
-                          {contact.vorname} {contact.nachname}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              <div className="grid gap-4 py-4">
+                <div className="flex items-center gap-4">
+                  <Search className="h-4 w-4 opacity-50" />
+                  <Input
+                    placeholder="Suche nach Ansprechpartner"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="col-span-3"
+                  />
                 </div>
-                <Button type="submit" className="w-full">
-                  Verknüpfen
-                </Button>
-              </form>
+                <div className="max-h-[300px] overflow-y-auto border rounded-md bg-background">
+                  {filteredContacts.map((contact) => (
+                    <Button
+                      key={contact.id}
+                      variant="ghost"
+                      className="w-full justify-start text-left py-2 px-3 hover:bg-muted"
+                      onClick={() => handleAddContact(contact.id)}
+                    >
+                      {contact.vorname} {contact.nachname}
+                    </Button>
+                  ))}
+                </div>
+              </div>
             </DialogContent>
           </Dialog>
 
@@ -195,13 +160,7 @@ export default function LinkedContacts({ currentCompanyId }: { currentCompanyId:
                       <h3 className="font-semibold text-sm">
                         {contact.vorname} {contact.nachname}
                       </h3>
-                      {/* Debug: Display raw positionJobtitel value */}
-
-                      {contact.positionJobtitel ? (
-                        <p className="text-sm text-muted-foreground">Position/Jobtitel: {contact.positionJobtitel}</p>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">Position/Jobtitel: Nicht verfügbar</p>
-                      )}
+                      {contact.positionJobtitel && <p className="text-sm text-muted-foreground">{contact.positionJobtitel}</p>}
                     </div>
                     <Button
                       variant="ghost"

@@ -1,8 +1,7 @@
 // components/BulkActionSidebar.tsx
 'use client';
 
-import React from 'react';
-import { createPortal } from 'react-dom';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
@@ -24,7 +23,6 @@ interface BulkActionSidebarProps {
   setNewVerknuepfung: (value: string) => void;
   onDelete: () => void;
   onUpdate: () => void;
-  betreuerList: { id: string; name: string }[];
 }
 
 export default function BulkActionSidebar({
@@ -41,11 +39,36 @@ export default function BulkActionSidebar({
   setNewVerknuepfung,
   onDelete,
   onUpdate,
-  betreuerList,
 }: BulkActionSidebarProps) {
-  if (!isOpen) return null;
+  const [betreuerList, setBetreuerList] = useState<{ id: string; name: string; vorname: string }[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  return createPortal(
+  useEffect(() => {
+    const fetchBetreuerList = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await fetch('/api/getBetreuerList');
+        if (!response.ok) {
+          throw new Error('Fehler beim Laden der Betreuer');
+        }
+        const data = await response.json();
+        setBetreuerList(data);
+      } catch (error) {
+        console.error('Fehler beim Laden der Betreuer:', error);
+        setError('Fehler beim Laden der Betreuer. Bitte versuchen Sie es später erneut.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBetreuerList();
+  }, []);
+
+  console.log('Geladene betreuerList in BulkActionSidebar:', betreuerList);
+
+  return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="sm:max-w-md">
         <SheetHeader>
@@ -85,18 +108,30 @@ export default function BulkActionSidebar({
           </div>
           <div className="space-y-2">
             <Label htmlFor="betreuer">Betreuer zuweisen</Label>
-            <Select onValueChange={setNewBetreuer} value={newBetreuer}>
-              <SelectTrigger id="betreuer">
-                <SelectValue placeholder="-- Betreuer auswählen --" />
-              </SelectTrigger>
-              <SelectContent>
-                {betreuerList.map((betreuer) => (
-                  <SelectItem key={betreuer.id} value={betreuer.id}>
-                    {betreuer.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {isLoading ? (
+              <div>Lade Betreuer...</div>
+            ) : error ? (
+              <div className="text-red-500">{error}</div>
+            ) : (
+              <Select onValueChange={setNewBetreuer} value={newBetreuer}>
+                <SelectTrigger id="betreuer">
+                  <SelectValue placeholder="-- Betreuer auswählen --" />
+                </SelectTrigger>
+                <SelectContent>
+                  {betreuerList.length > 0 ? (
+                    betreuerList.map((betreuer) => (
+                      <SelectItem key={betreuer.id} value={betreuer.id}>
+                        {betreuer.vorname} {betreuer.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="" disabled>
+                      Keine Betreuer verfügbar
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="verknuepfung">Unternehmensverknüpfung zuweisen</Label>
@@ -125,7 +160,6 @@ export default function BulkActionSidebar({
           <Button onClick={onUpdate}>Änderungen speichern</Button>
         </SheetFooter>
       </SheetContent>
-    </Sheet>,
-    document.body
+    </Sheet>
   );
 }

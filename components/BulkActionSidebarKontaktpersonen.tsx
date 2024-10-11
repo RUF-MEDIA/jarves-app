@@ -1,16 +1,15 @@
-// components/BulkActionSidebarKontaktpersonen.tsx
+// components/BulkActionSidebar.tsx
 'use client';
 
 import React from 'react';
-import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { statusOptionsKontaktpersonen } from '@/constants/statusOptionsKontaktpersonen';
-import { kategorieOptionsKontaktpersonen } from '@/constants/kategorieOptionsKontaktpersonen';
+import { statusOptions } from '@/constants/statusOptions';
+import { kategorieOptions } from '@/constants/kategorieOptions';
 
-interface BulkActionSidebarKontaktpersonenProps {
+interface BulkActionSidebarProps {
   isOpen: boolean;
   selectedCount: number;
   onClose: () => void;
@@ -20,12 +19,14 @@ interface BulkActionSidebarKontaktpersonenProps {
   setNewBetreuer: (value: string) => void;
   newKategorie: string;
   setNewKategorie: (value: string) => void;
+  newVerknuepfung: string;
+  setNewVerknuepfung: (value: string) => void;
   onDelete: () => void;
   onUpdate: () => void;
   betreuerList: { id: string; name: string }[];
 }
 
-export default function BulkActionSidebarKontaktpersonen({
+export default function BulkActionSidebar({
   isOpen,
   selectedCount,
   onClose,
@@ -35,13 +36,15 @@ export default function BulkActionSidebarKontaktpersonen({
   setNewBetreuer,
   newKategorie,
   setNewKategorie,
+  newVerknuepfung,
+  setNewVerknuepfung,
   onDelete,
   onUpdate,
   betreuerList,
-}: BulkActionSidebarKontaktpersonenProps) {
-  if (!isOpen) return null;
+}: BulkActionSidebarProps) {
+  console.log('Empfangene betreuerList in BulkActionSidebar:', betreuerList);
 
-  return createPortal(
+  return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="sm:max-w-md">
         <SheetHeader>
@@ -49,7 +52,6 @@ export default function BulkActionSidebarKontaktpersonen({
           <SheetDescription>{selectedCount} ausgewählt</SheetDescription>
         </SheetHeader>
         <div className="grid gap-4 py-4">
-          {/* Status ändern */}
           <div className="space-y-2">
             <Label htmlFor="status">Status ändern</Label>
             <Select onValueChange={setNewStatus} value={newStatus}>
@@ -57,7 +59,7 @@ export default function BulkActionSidebarKontaktpersonen({
                 <SelectValue placeholder="-- Status auswählen --" />
               </SelectTrigger>
               <SelectContent>
-                {statusOptionsKontaktpersonen.map((status) => (
+                {statusOptions.map((status) => (
                   <SelectItem key={status.value} value={status.value}>
                     {status.label}
                   </SelectItem>
@@ -65,8 +67,6 @@ export default function BulkActionSidebarKontaktpersonen({
               </SelectContent>
             </Select>
           </div>
-
-          {/* Kategorie ändern */}
           <div className="space-y-2">
             <Label htmlFor="kategorie">Kategorie ändern</Label>
             <Select onValueChange={setNewKategorie} value={newKategorie}>
@@ -74,16 +74,14 @@ export default function BulkActionSidebarKontaktpersonen({
                 <SelectValue placeholder="-- Kategorie auswählen --" />
               </SelectTrigger>
               <SelectContent>
-                {kategorieOptionsKontaktpersonen.map((kategorie) => (
-                  <SelectItem key={kategorie.value} value={kategorie.value}>
+                {kategorieOptions.map((kategorie) => (
+                  <SelectItem key={kategorie.value} value={kategorie.value.toString()}>
                     {kategorie.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-
-          {/* Betreuer zuweisen */}
           <div className="space-y-2">
             <Label htmlFor="betreuer">Betreuer zuweisen</Label>
             <Select onValueChange={setNewBetreuer} value={newBetreuer}>
@@ -91,16 +89,33 @@ export default function BulkActionSidebarKontaktpersonen({
                 <SelectValue placeholder="-- Betreuer auswählen --" />
               </SelectTrigger>
               <SelectContent>
-                {betreuerList.map((betreuer) => (
-                  <SelectItem key={betreuer.id} value={betreuer.id}>
-                    {betreuer.name}
+                {betreuerList && betreuerList.length > 0 ? (
+                  betreuerList.map((betreuer) => (
+                    <SelectItem key={betreuer.id} value={betreuer.id}>
+                      {betreuer.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="" disabled>
+                    Keine Betreuer verfügbar
                   </SelectItem>
-                ))}
+                )}
               </SelectContent>
             </Select>
           </div>
-
-          {/* Weitere Aktionen */}
+          <div className="space-y-2">
+            <Label htmlFor="verknuepfung">Unternehmensverknüpfung zuweisen</Label>
+            <Select onValueChange={setNewVerknuepfung} value={newVerknuepfung}>
+              <SelectTrigger id="verknuepfung">
+                <SelectValue placeholder="-- Verknüpfung auswählen --" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Muttergesellschaft">Muttergesellschaft</SelectItem>
+                <SelectItem value="Tochtergesellschaft">Tochtergesellschaft</SelectItem>
+                <SelectItem value="Schwestergesellschaft">Schwestergesellschaft</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <Button variant="secondary" className="w-full">
             Info-Mails/Newsletter senden
           </Button>
@@ -115,7 +130,6 @@ export default function BulkActionSidebarKontaktpersonen({
           <Button onClick={onUpdate}>Änderungen speichern</Button>
         </SheetFooter>
       </SheetContent>
-    </Sheet>,
-    document.body
+    </Sheet>
   );
 }

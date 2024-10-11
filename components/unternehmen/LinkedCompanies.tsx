@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { PlusCircle, XCircle } from 'lucide-react';
+import { PlusCircle, XCircle, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 interface Company {
   id: string;
@@ -18,20 +20,20 @@ interface Company {
 const LinkedCompanies: React.FC<{ currentCompanyId: string }> = ({ currentCompanyId }) => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [allCompanies, setAllCompanies] = useState<Company[]>([]);
+  const [filteredCompanies, setFilteredCompanies] = useState<Company[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [companyToRemove, setCompanyToRemove] = useState<Company | null>(null);
   const [newCompanyId, setNewCompanyId] = useState('');
   const [unternehmensverknuepfung, setUnternehmensverknuepfung] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchLinkedCompanies = async () => {
       try {
         const response = await fetch(`/api/linkedCompanies?currentCompanyId=${currentCompanyId}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch linked companies');
-        }
+        if (!response.ok) throw new Error('Failed to fetch linked companies');
         const data = await response.json();
         setCompanies(data);
       } catch (error) {
@@ -42,11 +44,10 @@ const LinkedCompanies: React.FC<{ currentCompanyId: string }> = ({ currentCompan
     const fetchAllCompanies = async () => {
       try {
         const response = await fetch('/api/allCompanies');
-        if (!response.ok) {
-          throw new Error('Failed to fetch all companies');
-        }
+        if (!response.ok) throw new Error('Failed to fetch all companies');
         const data = await response.json();
         setAllCompanies(data);
+        setFilteredCompanies(data);
       } catch (error) {
         console.error('Error fetching all companies:', error);
       } finally {
@@ -58,8 +59,12 @@ const LinkedCompanies: React.FC<{ currentCompanyId: string }> = ({ currentCompan
     fetchAllCompanies();
   }, [currentCompanyId]);
 
-  const handleAddCompany = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    const filtered = allCompanies.filter((company) => company.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    setFilteredCompanies(filtered);
+  }, [searchTerm, allCompanies]);
+
+  const handleAddCompany = async () => {
     if (!newCompanyId || !unternehmensverknuepfung) {
       console.error('Bitte füllen Sie alle Pflichtfelder aus');
       return;
@@ -78,9 +83,7 @@ const LinkedCompanies: React.FC<{ currentCompanyId: string }> = ({ currentCompan
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to link company');
-      }
+      if (!response.ok) throw new Error('Failed to link company');
 
       const updatedCompanies = await fetch(`/api/linkedCompanies?currentCompanyId=${currentCompanyId}`).then((res) => res.json());
       setCompanies(updatedCompanies);
@@ -88,6 +91,7 @@ const LinkedCompanies: React.FC<{ currentCompanyId: string }> = ({ currentCompan
       setIsModalOpen(false);
       setNewCompanyId('');
       setUnternehmensverknuepfung('');
+      setSearchTerm('');
     } catch (error) {
       console.error('Error linking company:', error);
     }
@@ -106,9 +110,7 @@ const LinkedCompanies: React.FC<{ currentCompanyId: string }> = ({ currentCompan
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to unlink company');
-      }
+      if (!response.ok) throw new Error('Failed to unlink company');
 
       const updatedCompanies = await fetch(`/api/linkedCompanies?currentCompanyId=${currentCompanyId}`).then((res) => res.json());
       setCompanies(updatedCompanies);
@@ -134,25 +136,38 @@ const LinkedCompanies: React.FC<{ currentCompanyId: string }> = ({ currentCompan
                 <span>Neu</span>
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="sm:max-w-[600px] w-full">
               <DialogHeader>
                 <DialogTitle>Unternehmen verknüpfen</DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleAddCompany} className="space-y-4">
+              <div className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="newCompanyId">Unternehmen auswählen</Label>
-                  <Select value={newCompanyId} onValueChange={setNewCompanyId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Wählen Sie ein Unternehmen" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {allCompanies.map((company) => (
-                        <SelectItem key={company.id} value={company.id}>
-                          {company.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="companySearch">Unternehmen suchen und auswählen</Label>
+                  <div className="flex items-center space-x-2 border rounded-md px-3 py-2">
+                    <Search className="w-4 h-4 opacity-50" />
+                    <Input
+                      id="companySearch"
+                      placeholder="Unternehmen suchen..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    />
+                  </div>
+                </div>
+                <div className="max-h-[200px] overflow-y-auto border rounded-md bg-background">
+                  {filteredCompanies.map((company) => (
+                    <Button
+                      key={company.id}
+                      variant="ghost"
+                      className={`w-full justify-start text-left py-2 px-3 hover:bg-muted ${newCompanyId === company.id ? 'bg-muted' : ''}`}
+                      onClick={() => {
+                        setNewCompanyId(company.id);
+                        setSearchTerm(company.name);
+                      }}
+                    >
+                      {company.name}
+                    </Button>
+                  ))}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="unternehmensverknuepfung">Art der Verknüpfung</Label>
@@ -167,10 +182,10 @@ const LinkedCompanies: React.FC<{ currentCompanyId: string }> = ({ currentCompan
                     </SelectContent>
                   </Select>
                 </div>
-                <Button type="submit" className="w-full">
+                <Button onClick={handleAddCompany} className="w-full">
                   Verknüpfen
                 </Button>
-              </form>
+              </div>
             </DialogContent>
           </Dialog>
 
@@ -193,7 +208,7 @@ const LinkedCompanies: React.FC<{ currentCompanyId: string }> = ({ currentCompan
                     <XCircle className="h-4 w-4" />
                   </Button>
                 </div>
-                <div className="text-sm text-muted-foreground mt-0">{company.unternehmensverknuepfung || 'Keine Verknüpfung'}</div>
+                <div className="text-sm text-muted-foreground mt-1">{company.unternehmensverknuepfung || 'Keine Verknüpfung'}</div>
               </CardContent>
             </Card>
           ))}
