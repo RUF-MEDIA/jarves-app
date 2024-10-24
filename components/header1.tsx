@@ -11,6 +11,7 @@ import { faEnvelope, faCalendarAlt, faTasks, faCaretDown } from '@fortawesome/fr
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { LiveSearch } from './LiveSearch'; // Importieren Sie die neue LiveSearch-Komponente
 
 export default function Header1() {
   const [profilBild, setProfilBild] = useState<string | null>(null);
@@ -60,7 +61,7 @@ export default function Header1() {
           </Link>
         </div>
         <div className="w-1/2 flex justify-center">
-          <div className="rounded-full border px-5 py-2 w-full max-w-md">Ich suche ...</div>
+          <LiveSearch /> {/* Hier fügen wir die LiveSearch-Komponente ein */}
         </div>
 
         <div className="w-1/3 flex justify-end items-center space-x-5">

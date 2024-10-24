@@ -40,7 +40,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
+    // Überprüfe, ob es sich um einen Upload für ein Unternehmen oder eine Kontaktperson handelt
     const unternehmenId = Array.isArray(fields.unternehmenId) ? fields.unternehmenId[0] : fields.unternehmenId;
+    const kontaktpersonId = Array.isArray(fields.kontaktpersonId) ? fields.kontaktpersonId[0] : fields.kontaktpersonId;
+
+    // Hole die gemeinsamen Felder
     const titel = Array.isArray(fields.titel) ? fields.titel[0] : fields.titel;
     const artKunde = Array.isArray(fields.artKunde) ? fields.artKunde[0] : fields.artKunde;
     const individuelleBezeichnung = Array.isArray(fields.individuelleBezeichnung)
@@ -48,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       : fields.individuelleBezeichnung;
     const erstellerId = Array.isArray(fields.erstellerId) ? fields.erstellerId[0] : fields.erstellerId;
 
-    if (!unternehmenId || !titel || !artKunde || !erstellerId) {
+    if ((!unternehmenId && !kontaktpersonId) || !titel || !artKunde || !erstellerId) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -58,7 +62,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log('Creating document in database');
       const document = await prisma.dokument.create({
         data: {
-          unternehmenId: unternehmenId,
+          // Bedingte Felder basierend auf dem Dokumenttyp
+          ...(unternehmenId ? { unternehmenId } : {}),
+          ...(kontaktpersonId ? { kontaktpersonId } : {}),
+
+          // Gemeinsame Felder
           titel: titel,
           artKunde: artKunde as 'RAHMENVERTRAG' | 'MITSCHRIFT_GESPRAECH' | 'SONSTIGE_DOKUMENTE',
           link: fileUrl,

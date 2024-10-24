@@ -1,6 +1,6 @@
 // app/talente/page.tsx
 import { Suspense } from 'react';
-import { TalenteList } from '@/components/talente/TalenteListe';
+import { TalentListe } from '@/components/talente/TalenteListe';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function TalentePage() {
@@ -13,7 +13,7 @@ export default function TalentePage() {
         </div>
       </div>
       <Suspense fallback={<Skeleton className="w-full h-[300px]" />}>
-        <TalenteList />
+        <TalentListe />
       </Suspense>
     </div>
   );

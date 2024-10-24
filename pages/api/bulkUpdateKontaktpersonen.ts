@@ -5,57 +5,60 @@ import { PrismaClient, AnsprechpartnerStatus, AnsprechpartnerKategorie } from '@
 const prisma = new PrismaClient();
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  console.log('Received bulk update request:', req.body);
+
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
-    return res.status(405).end(`Methode ${req.method} ist nicht erlaubt`);
+    return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
   const { ids, updates } = req.body;
 
   try {
-    // Überprüfe, ob IDs bereitgestellt wurden
     if (!Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ error: 'Keine IDs bereitgestellt' });
+      console.log('No IDs provided');
+      return res.status(400).json({ error: 'No IDs provided' });
     }
 
     const updateData: any = {};
 
-    // Status aktualisieren
     if (updates.status) {
       if (!Object.values(AnsprechpartnerStatus).includes(updates.status)) {
-        return res.status(400).json({ error: 'Ungültiger Statuswert' });
+        console.log('Invalid status value:', updates.status);
+        return res.status(400).json({ error: 'Invalid status value' });
       }
       updateData.status = updates.status;
     }
 
-    // Kategorie aktualisieren
     if (updates.kategorie) {
       if (!Object.values(AnsprechpartnerKategorie).includes(updates.kategorie)) {
-        return res.status(400).json({ error: 'Ungültiger Kategorienwert' });
+        console.log('Invalid category value:', updates.kategorie);
+        return res.status(400).json({ error: 'Invalid category value' });
       }
       updateData.kategorie = updates.kategorie;
     }
 
-    // Betreuer aktualisieren
     if (updates.betreuerId) {
       const betreuerExists = await prisma.user.findUnique({ where: { id: updates.betreuerId } });
       if (!betreuerExists) {
-        return res.status(400).json({ error: 'Betreuer-ID nicht gültig' });
+        console.log('Invalid betreuer ID:', updates.betreuerId);
+        return res.status(400).json({ error: 'Invalid betreuer ID' });
       }
       updateData.betreuerId = updates.betreuerId;
     }
 
-    // Weitere Felder können hier hinzugefügt werden, falls benötigt
+    console.log('Updating contact persons with data:', updateData);
 
-    // Führe die Aktualisierung durch
-    await prisma.ansprechpartner.updateMany({
+    const updateResult = await prisma.ansprechpartner.updateMany({
       where: { id: { in: ids } },
       data: updateData,
     });
 
-    res.status(200).json({ message: 'Kontaktpersonen erfolgreich aktualisiert' });
+    console.log('Update result:', updateResult);
+
+    res.status(200).json({ message: 'Contact persons updated successfully', updatedCount: updateResult.count });
   } catch (error) {
-    console.error('Fehler beim Aktualisieren der Kontaktpersonen:', error);
-    res.status(500).json({ error: 'Fehler beim Aktualisieren der Kontaktpersonen' });
+    console.error('Error updating contact persons:', error);
+    res.status(500).json({ error: 'Error updating contact persons' });
   }
 }
